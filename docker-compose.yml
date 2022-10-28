@@ -1,0 +1,50 @@
+version: '3'
+services:
+  backend:
+    build:
+      context: .
+    # command:  bash -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
+    command: tail -F anything
+    environment:
+      - SECRET_KEY=${SECRET_KEY}
+      - DATABASE_ENGINE=${DATABASE_ENGINE}
+      - DATABASE_NAME=${DATABASE_NAME}
+      - DATABASE_USER=${DATABASE_USER}
+      - DATABASE_PASSWORD=${DATABASE_PASSWORD}
+      - DATABASE_HOST=${DATABASE_HOST}
+      - DATABASE_PORT=${DATABASE_PORT}
+      - DJANGO_DEBUG=${DJANGO_DEBUG}
+      - DJANGO_ALLOWED_HOSTS=${DJANGO_ALLOWED_HOSTS}
+      - MAILJET_API_KEY=${MAILJET_API_KEY}
+      - MAILJET_SECRET_KEY=${MAILJET_SECRET_KEY}
+      - WEBHOOK_SECRET=${WEBHOOK_SECRET}
+      - DEFAULT_FROM_EMAIL=${DEFAULT_FROM_EMAIL}
+      - SERVER_EMAIL=${SERVER_EMAIL}
+    ports:
+      - 8000:8000
+    depends_on:
+      - postgres
+    restart: on-failure
+    volumes:
+      - ./src:/fairway
+  postgres:
+    build:
+      context: ../db
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_USER=fairway
+      - POSTGRES_PASSWORD=areallysupersecurepassword
+    volumes:
+      - db:/var/lib/postgresql/data
+    restart: always
+  pgadmin:
+    image: 'dpage/pgadmin4'
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=lashlash@gmail.com
+      - PGADMIN_DEFAULT_PASSWORD=testpassword
+      - PGADMIN_LISTEN_ADDRESS=0.0.0.0
+    ports:
+      - "80:80"
+volumes:
+  db:
