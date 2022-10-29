@@ -5,7 +5,6 @@ import io.iohk.atala.prism.identity.*
 import io.micronaut.http.annotation.Controller
 import io.micronaut.http.annotation.Get
 import io.micronaut.http.annotation.Post
-import kotlinx.serialization.json.Json
 import java.util.*
 
 class VerifyEndpoint{
@@ -29,7 +28,7 @@ class VerifyEndpoint{
         "did:prism:9fe2b88c280a0159a2c4d7e7e74f0cf96f2af976adf9a03bcbb5db02c71f8dbe"  to "Jimma University"
     )
     companion object {
-        fun verifier(holderSignedCredential: String): String {
+        fun verifier(holderSignedCredential: String, userName: String, education: List<Any>): String {
             // todo: split 'holderSignedCredential' at (.)
             // todo: decode the credential content encoded value
             val decoder: Base64.Decoder = Base64.getDecoder()
@@ -49,7 +48,7 @@ class VerifyEndpoint{
             //  1. School name vs value in 'organizations' ^ return { INVALID CREDENTIAL - Wrong Issuer} if false
             //  2. Else holder name vs user name in 'user' ^ return { INVALID CREDENTIAL - Not owner } if false
             //  3. Else certificate vs field_of_study ^ return { INVALID CREDENTIAL - Wrong Field of study }
-            //  4. Else ^ return { VERIFIED OR VALDID CREDENTIAL }
+            //  4. Else ^ return { VERIFIED OR VALID CREDENTIAL }
 
 
             return content
@@ -58,16 +57,21 @@ class VerifyEndpoint{
 
 }
 
-@Controller("/api/verify") // accessed via the link http://localhost:8080/api/verify
+@Controller("/") // accessed via the link http://localhost:8080/api/verify
 class VerifyService {
 
     @Get("/")
-    fun index(): String = "Hello Prism: get Verification"
+    fun index(): String = "\n\n\t\t\t Hello    Hola     Bonjur    Merehaba ...  " +
+            "\n\n\t\t\t This is Prism, where you can get verification for your Credential." +
+            "\n\t\t\t Please use the link http://localhost:8080/api/verify" +
+            "\n\n\t\t\t Thank you    Gracias    Merci   Sağol"
 
-    @Post("/")
-    fun verify(holderSignedCredentialDID:String, user:Json, education:Json):String{
-        var cred_content = VerifyEndpoint.verifier(holderSignedCredentialDID)
-        return holderSignedCredentialDID + " \n - " + cred_content + " - IS VERIFIED"
+    @Post("/api/verify")
+    fun verify(holderSignedCredentialDID:String, userName:String, education:List<Any>):String{
+        // todo: access items in the json data
+        var cred_content = VerifyEndpoint.verifier(holderSignedCredentialDID, userName, education)
+        // return holderSignedCredentialDID + " \n - " + cred_content + "\n__IS VERIFIED" +"\n user" + "\n education"
+        return "Received"
     }
 
 }
