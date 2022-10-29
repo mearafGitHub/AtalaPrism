@@ -55,7 +55,7 @@ class VerifyEndpoint{
                 println("School: $education[1]   $temp")
                 return  "INVALID CREDENTIAL - Wrong Issuer"
                 }
-            // Else holder name vs username in 'user' ^ return INVALID CREDENTIAL - Not owner if false
+            // Else holder name vs username in 'userName' ^ return INVALID CREDENTIAL - Not owner if false
             else if (userName != subject.get("name")) {
                 return "INVALID CREDENTIAL - Not owner."
             }
@@ -91,4 +91,5 @@ class VerifyService {
         return result
     }
     // todo: cloud host
+    // todo: Frontend integration test
 }
