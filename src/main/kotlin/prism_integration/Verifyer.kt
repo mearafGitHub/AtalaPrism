@@ -18,31 +18,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 
-
 class Verifyer{
-
-    val holders = mapOf(
-        "Blein Mesfin" to
-                "did:prism:c2a4c9eebe9fdc57d472faddec21e82b2f1de6cf44094d3c1f9ef990bb7b8b4c:Cj8KPRI7CgdtYXN0ZXIwEAFKLgoJc2VjcDI1NmsxEiEC1v6aCe35bTymidbmuQDnncj1eormA9Xn7x3IISaxqVs"
-        ,
-        "Eba Ayana" to
-                "did:prism:2a1c76a9dcc6f92ff6cb0143857de561b61f2a32beb3e5b856a22c9343579069:Cj8KPRI7CgdtYXN0ZXIwEAFKLgoJc2VjcDI1NmsxEiEC_KK7moccRT4D5wkoqy25DVTrfWk8LBjc9XbYrmvFSJ8"
-        ,
-        "Daenarys Shelmazmel Targaeryan" to
-                "did:prism:abe35abbbdbd639dbff0e4420136667a93c7eb578290f7c2ab5cb7f683fac56e:Cj8KPRI7CgdtYXN0ZXIwEAFKLgoJc2VjcDI1NmsxEiECQPBaK2b4q85523VohJIsah18VLkcut308UoWRPpP5Nc"
-        ,
-        "Mearaf Tadewos" to
-                "did:prism:0d3ed77d9652334af0343958c00a7e0db6ac3b21366d37d6d9d9eb4deb21feb2:Cj8KPRI7CgdtYXN0ZXIwEAFKLgoJc2VjcDI1NmsxEiEDiLEXAW4WBzd_SLbiM9rfPflOo5kqnYUQI7op2ktAPIs"
-    )
-
-    val organizations = mapOf(
-
-        "did:prism:297506b34a0572ac615e04ea440d34c73e2948df491d50ebe1f8ba1d8d13f065" to "Addis Ababa University",
-        "did:prism:4d5257d64a4dab5c69e3b97668d4df0b022966b35242699695735f8d53c5b07a" to "Hawasa University",
-        "did:prism:5567fe8833a9f88f116169df1035fa32d236537b3c1a004c559f73b333b1c4f8" to "John Snow",
-        "did:prism:9fe2b88c280a0159a2c4d7e7e74f0cf96f2af976adf9a03bcbb5db02c71f8dbe"  to "Jimma University"
-    )
-
     // creates unpublished did for holder
     fun holderCreateDID(): LongFormPrismDid {
         // Holder generates its identity
@@ -134,9 +110,9 @@ class Verifyer{
 
         println(
             """
-        - DID with id $issuerDid is created
-        """.trimIndent()
-        )
+            - DID with id $issuerDid is created
+            """.trimIndent()
+            )
         println()
         // return issuerDid
 
@@ -154,13 +130,13 @@ class Verifyer{
                     issuerKeys[PrismDid.DEFAULT_ISSUING_KEY_ID]?.publicKey!!
                 )
             )
-// creation of UpdateDID operation
+        // creation of UpdateDID operation
         val addIssuingKeyDidInfo = issuerNodePayloadGenerator.updateDid(
             issuerCreateDidInfo.operationHash,
             PrismDid.DEFAULT_MASTER_KEY_ID,
             keysToAdd = arrayOf(issuingKeyInfo)
         )
-// sending the operation to the ledger
+        // sending the operation to the ledger
         val addIssuingKeyOperationId = runBlocking {
             nodeAuthApi.updateDid(
                 addIssuingKeyDidInfo.payload,
@@ -186,7 +162,7 @@ class Verifyer{
                 mapOf(
                     Pair("name", JsonPrimitive("Mearaf Tadewos")),
                     Pair("certificate", JsonPrimitive("Certificate of First Degree in Computer Science")),
-                    Pair("issuer", JsonPrimitive("Jimma University"))
+                    Pair("issuer", JsonPrimitive("Addis Ababa University"))
                 )
             )
         )
@@ -250,20 +226,6 @@ class Verifyer{
         }
     }
 
-    fun holder_cred_former(holderCredInfo:String){
-        /*var sample_cred = JsonBasedCredential(content=
-        CredentialContent(
-            fields={
-                "id":holderCredInfo.issuerDID
-                "keyId":holderCredInfo.issuingKey,
-                "credentialSubject":{
-                    "name":holderCredInfo.holder_fullName,
-                    "certificate":holderCredInfo.certificateConcern,
-                    "issuer":holderCredInfo.issuerName,
-                    "id":holderCredInfo.holderDID}),
-            signature= ECSignature@278f8425) */
-    }
-
     fun main(args: Array<String>) {
         println("Hello Atala Prism!")
 ///*
@@ -271,21 +233,11 @@ class Verifyer{
         val nodeAuthApi = NodeAuthApiImpl(GrpcOptions("http", environment, 50053))
         val holderUnpublishedDid = holderCreateDID()
         var returned_list = createIssuerDID(nodeAuthApi, holderUnpublishedDid)
+
         var issuerDid = returned_list.get(0)
         var issuerNodePayloadGenerator = returned_list.get(1)
         var holderSignedCredential = returned_list.get(2)
         var holderCredentialMerkleProof = returned_list.get(3)
-
-        /*   var credInfo = JsonBasedCredential(content= CredentialContent(fields={
-               "id":"did:prism:d496fc273fe347e42bc1226b6128ed7a7bbb5f421cbfe4279675f767493e4e99",
-               "keyId":"issuing0",
-               "credentialSubject":{
-                   "name":"Mearaf Tadewos",
-                   "certificate":"Certificate of First Degree in Computer Science",
-                   "issuer":"Jimma University",
-                   "id":"did:prism:be427ec7a5cb2724ee6410d2c977747d832a2fe44d33c520035d6aab7deef22a:Cj8KPRI7CgdtYXN0ZXIwEAFKLgoJc2VjcDI1NmsxEiECZuwAvbIevPJ0-Y5WhNQCT-7msecXHHKyiGszbGH0lYs"}
-               }),
-               signature = ECSignature@5eccd3b9)*/
 
         verifier(nodeAuthApi,
             holderSignedCredential as PrismCredential,

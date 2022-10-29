@@ -1,19 +1,15 @@
 package prism_integration
 
-import io.iohk.atala.prism.api.node.NodeAuthApiImpl
-import io.iohk.atala.prism.credentials.PrismCredential
-import io.iohk.atala.prism.crypto.MerkleInclusionProof
+import com.google.gson.Gson
 import io.iohk.atala.prism.identity.*
-import io.iohk.atala.prism.protos.GrpcOptions
 import io.micronaut.http.annotation.Controller
 import io.micronaut.http.annotation.Get
 import io.micronaut.http.annotation.Post
-import kotlinx.coroutines.runBlocking
-
+import kotlinx.serialization.json.Json
+import java.util.*
 
 class VerifyEndpoint{
-
-    val holders = mapOf(
+    private val holders:HashMap<String, String> = hashMapOf(
         "Blein Mesfin" to
                 "did:prism:c2a4c9eebe9fdc57d472faddec21e82b2f1de6cf44094d3c1f9ef990bb7b8b4c:Cj8KPRI7CgdtYXN0ZXIwEAFKLgoJc2VjcDI1NmsxEiEC1v6aCe35bTymidbmuQDnncj1eormA9Xn7x3IISaxqVs"
         ,
@@ -26,50 +22,52 @@ class VerifyEndpoint{
         "Mearaf Tadewos" to
                 "did:prism:0d3ed77d9652334af0343958c00a7e0db6ac3b21366d37d6d9d9eb4deb21feb2:Cj8KPRI7CgdtYXN0ZXIwEAFKLgoJc2VjcDI1NmsxEiEDiLEXAW4WBzd_SLbiM9rfPflOo5kqnYUQI7op2ktAPIs"
     )
-
-    val organizations = mapOf(
+    private val organizations:HashMap<String, String> = hashMapOf(
         "did:prism:297506b34a0572ac615e04ea440d34c73e2948df491d50ebe1f8ba1d8d13f065" to "Addis Ababa University",
         "did:prism:4d5257d64a4dab5c69e3b97668d4df0b022966b35242699695735f8d53c5b07a" to "Hawasa University",
         "did:prism:5567fe8833a9f88f116169df1035fa32d236537b3c1a004c559f73b333b1c4f8" to "John Snow",
         "did:prism:9fe2b88c280a0159a2c4d7e7e74f0cf96f2af976adf9a03bcbb5db02c71f8dbe"  to "Jimma University"
     )
+    companion object {
+        fun verifier(holderSignedCredential: String): String {
+            // todo: split 'holderSignedCredential' at (.)
+            // todo: decode the credential content encoded value
+            val decoder: Base64.Decoder = Base64.getDecoder()
+            val content = String(decoder.decode(holderSignedCredential))
+            println("Credential content: $content")
+            println(content::class.java.typeName)
 
-    private fun verifier(nodeAuthApi: NodeAuthApiImpl,
-                         holderSignedCredential: PrismCredential,
-                         holderCredentialMerkleProof: MerkleInclusionProof){
-        // Verifier, who owns credentialClam, can easily verify the validity of the credentials.
-        println("Verifier is Verifying the received credential using single convenience method")
+            // todo: convert it to a map
+            var map: Map<String, Any> = HashMap()
+            var contentHashMmap = Gson().fromJson(content, map.javaClass)
+            println()
+            println(contentHashMmap::class.java.typeName)
+            println(contentHashMmap)
+            println(contentHashMmap.get("id"))
 
-        val credentialVerificationServiceResult = runBlocking {
-            nodeAuthApi.verify(
-                signedCredential = holderSignedCredential,
-                merkleInclusionProof = holderCredentialMerkleProof
-            )
+            // todo: Validation block. Compare for invalid cases. Data -> education, contentHashMmap, user, organizations
+            //  1. School name vs value in 'organizations' ^ return { INVALID CREDENTIAL - Wrong Issuer} if false
+            //  2. Else holder name vs user name in 'user' ^ return { INVALID CREDENTIAL - Not owner } if false
+            //  3. Else certificate vs field_of_study ^ return { INVALID CREDENTIAL - Wrong Field of study }
+            //  4. Else ^ return { VERIFIED OR VALDID CREDENTIAL }
+
+
+            return content
         }
-        require(credentialVerificationServiceResult.verificationErrors.isEmpty()) {
-            "VerificationErrors should be empty: YOU SHOULD NOT RECEIVE THIS MESSAGE IF VERIFICATION WERE SUCCESSFUL."
-        }
-    }
-
-    fun main(cred_did:PrismDid) {
-        println("Fairway Prism Integrated!")
-        val environment = "ppp-vasil.atalaprism.io"
-        val nodeAuthApi = NodeAuthApiImpl(GrpcOptions("http", environment, 50053))
-        // verifier(nodeAuthApi, holderSignedCredential as PrismCredential, holderCredentialMerkleProof as MerkleInclusionProof)
     }
 
 }
 
-
-@Controller("/api") // accessed via the link http://localhost:8080/api/
+@Controller("/api/verify") // accessed via the link http://localhost:8080/api/verify
 class VerifyService {
 
     @Get("/")
     fun index(): String = "Hello Prism: get Verification"
 
     @Post("/")
-    fun verify(holderSignedCredential:String):String{
-        return holderSignedCredential+" - "+"VERIFIED"
+    fun verify(holderSignedCredentialDID:String, user:Json, education:Json):String{
+        var cred_content = VerifyEndpoint.verifier(holderSignedCredentialDID)
+        return holderSignedCredentialDID + " \n - " + cred_content + " - IS VERIFIED"
     }
 
 }
