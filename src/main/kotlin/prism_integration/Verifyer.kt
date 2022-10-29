@@ -161,7 +161,7 @@ class Verifyer{
             content = JsonObject(
                 mapOf(
                     Pair("name", JsonPrimitive("Mearaf Tadewos")),
-                    Pair("certificate", JsonPrimitive("Certificate of First Degree in Computer Science")),
+                    Pair("certificate", JsonPrimitive("Certificate of Computer Science Degree")),
                     Pair("issuer", JsonPrimitive("Addis Ababa University"))
                 )
             )
