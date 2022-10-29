@@ -61,17 +61,18 @@ class VerifyEndpoint{
 class VerifyService {
 
     @Get("/")
-    fun index(): String = "\n\n\t\t\t Hello    Hola     Bonjur    Merehaba ...  " +
-            "\n\n\t\t\t This is Prism, where you can get verification for your Credential." +
-            "\n\t\t\t Please use the link http://localhost:8080/api/verify" +
-            "\n\n\t\t\t Thank you    Gracias    Merci   Sağol"
+    fun index(): String = "\n\n\n\n\n\n\n\n\n\n\n\n" +
+            "\t\t\t\t\t\t\t Hello    Hola    Bonjur    Merehaba ...  " +
+            "\n\n\t\t\t\t\t\t\t This is Prism, where you can get verification for your Credential." +
+            "\n\t\t\t\t\t\t\t Please use the link http://localhost:8080/api/verify" +
+            "\n\n\t\t\t\t\t\t\t Thank you    Gracias    Merci    Sağol ..."
 
     @Post("/api/verify")
     fun verify(holderSignedCredentialDID:String, userName:String, education:List<Any>):String{
         // todo: access items in the json data
         var cred_content = VerifyEndpoint.verifier(holderSignedCredentialDID, userName, education)
-        // return holderSignedCredentialDID + " \n - " + cred_content + "\n__IS VERIFIED" +"\n user" + "\n education"
+        // return holderSignedCredentialDID + " \n - " + cred_content + "\n --IS VERIFIED" +"\n user" + "\n education"
         return "Received"
     }
-
+    // todo: cloud host
 }
