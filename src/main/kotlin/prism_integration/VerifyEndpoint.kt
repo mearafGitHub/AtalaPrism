@@ -2,6 +2,8 @@ package prism_integration
 
 import com.google.gson.Gson
 import com.google.gson.internal.LinkedTreeMap
+import io.iohk.atala.prism.credentials.content.CredentialContent
+import io.iohk.atala.prism.crypto.signature.ECSignature
 import io.iohk.atala.prism.identity.*
 import io.micronaut.http.annotation.Controller
 import io.micronaut.http.annotation.Get
@@ -9,21 +11,16 @@ import io.micronaut.http.annotation.Post
 import java.util.*
 
 class VerifyEndpoint{
-    private val holders:HashMap<String, String> = hashMapOf(
-        "Blein Mesfin" to
-                "did:prism:c2a4c9eebe9fdc57d472faddec21e82b2f1de6cf44094d3c1f9ef990bb7b8b4c:Cj8KPRI7CgdtYXN0ZXIwEAFKLgoJc2VjcDI1NmsxEiEC1v6aCe35bTymidbmuQDnncj1eormA9Xn7x3IISaxqVs"
-        ,
-        "Eba Ayana" to
-                "did:prism:2a1c76a9dcc6f92ff6cb0143857de561b61f2a32beb3e5b856a22c9343579069:Cj8KPRI7CgdtYXN0ZXIwEAFKLgoJc2VjcDI1NmsxEiEC_KK7moccRT4D5wkoqy25DVTrfWk8LBjc9XbYrmvFSJ8"
-        ,
-        "Daenarys Shelmazmel Targaeryan" to
-                "did:prism:abe35abbbdbd639dbff0e4420136667a93c7eb578290f7c2ab5cb7f683fac56e:Cj8KPRI7CgdtYXN0ZXIwEAFKLgoJc2VjcDI1NmsxEiECQPBaK2b4q85523VohJIsah18VLkcut308UoWRPpP5Nc"
-        ,
-        "Mearaf Tadewos" to
-                "did:prism:0d3ed77d9652334af0343958c00a7e0db6ac3b21366d37d6d9d9eb4deb21feb2:Cj8KPRI7CgdtYXN0ZXIwEAFKLgoJc2VjcDI1NmsxEiEDiLEXAW4WBzd_SLbiM9rfPflOo5kqnYUQI7op2ktAPIs"
-    )
 
     companion object {
+        fun prismCredential_maker(contentBytes:ByteArray,
+                                  content:CredentialContent,
+                                  signature: ECSignature,
+                                  canonicalForm: String){
+            // var cred: PrismCredential = PrismCredential( contentBytes, content, signature, canonicalForm: String )
+            // todo: find a way to create verifiyable Prism Credential object
+        }
+
         fun verifier(holderSignedCredential: String, userName: String, education: HashMap<String, String>): String {
 
             val organizations:HashMap<String, String> = hashMapOf(
@@ -51,7 +48,7 @@ class VerifyEndpoint{
             // School name vs value in 'organizations' ^ return INVALID CREDENTIAL - Wrong Issuer if false
             if ( education.get("school") != organizations.get(contentHashMmap.get("id")) ){
                 println()
-                val temp =organizations.get(contentHashMmap.get("id"))
+                val temp = organizations.get(contentHashMmap.get("id"))
                 println("School: $education[1]   $temp")
                 return  "INVALID CREDENTIAL - Wrong Issuer"
                 }
