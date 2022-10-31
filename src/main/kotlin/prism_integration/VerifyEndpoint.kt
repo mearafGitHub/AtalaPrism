@@ -116,7 +116,7 @@ class VerifyEndpoint{
             val credContent = String(decoder.decode(holderSignedCredentialHash_contentBytes))
             var map: Map<String, Any> = HashMap()
             var credContentMap = Gson().fromJson(credContent, map.javaClass)
-            // todo: talk to Esteban Garcia on creating PrismCredential and the errors
+            // todo: talk to Esteban Garcia on creating PrismCredential and the errors (not quite urgent but can be a good add)
             // var credContentJson: JsonObject = JsonObject(credContentMap as Map<String, JsonElement>)
             // var contentBytes:ByteArray = credContent.toByteArray()
             // var content:CredentialContent = CredentialContent(credContentJson)
