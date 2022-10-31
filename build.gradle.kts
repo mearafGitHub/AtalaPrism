@@ -10,9 +10,6 @@ version = "0.1"
 group = "prism_integration"
 
 val kotlinVersion=project.properties.get("kotlinVersion")
-// import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-
-
 
 group = "org.example"
 version = "1.0-SNAPSHOT"
@@ -30,7 +27,7 @@ repositories {
         url = uri("https://maven.pkg.github.com/input-output-hk/atala-prism-sdk")
         credentials {
             username = "atala-dev"
-            password = "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"    //System.getenv("PRISM_SDK_PASSWORD")
+            password = System.getenv("PRISM_SDK_PASSWORD")
         }
     }
 }
@@ -67,7 +64,6 @@ dependencies {
     // json serialiser
     implementation ("com.google.code.gson:gson:2.10")
 
-    implementation ("com.fasterxml.jackson.module:jackson-module-kotlin:2.12.1")
 }
 
 
