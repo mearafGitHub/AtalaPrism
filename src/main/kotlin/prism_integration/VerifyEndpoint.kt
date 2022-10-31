@@ -9,6 +9,8 @@ import io.iohk.atala.prism.crypto.*
 import io.iohk.atala.prism.crypto.keys.ECPrivateKey
 import io.iohk.atala.prism.crypto.signature.ECSignature
 import io.iohk.atala.prism.identity.*
+import io.micronaut.http.HttpResponse.ok
+import io.micronaut.http.MutableHttpResponse
 import io.micronaut.http.annotation.Controller
 import io.micronaut.http.annotation.Get
 import io.micronaut.http.annotation.Post
@@ -126,7 +128,10 @@ class VerifyEndpoint{
             // makes the NodeAuthApiImpl instance
             // val environment = "ppp-vasil.atalaprism.io"
             // val nodeAuthApi = NodeAuthApiImpl(GrpcOptions("http", environment, 50053))
-            // if (prismVerify(nodeAuthApi, signedCred, credMerkleProof)){fairwayVerify(credContentMap, userName, education)}
+
+            // if (prismVerify(nodeAuthApi, signedCred, credMerkleProof)){
+                // return fairwayVerify(credContentMap, userName, education)
+            // }
 
             return  fairwayVerify(credContentMap, userName, education) // "Testing..."
         }
@@ -141,17 +146,17 @@ private typealias Index = Int
 class VerifyService {
 
     @Get("/")
-    fun index(): String = "\n\n\n\n\n\n\n\n\n\n\n\n" +
+    fun index(): MutableHttpResponse<String>? = ok("\n\n\n\n\n\n\n\n\n\n\n\n" +
             "\t\t\t\t\t\t\t Hello    Hola    Bonjur    Merehaba ...  " +
             "\n\n\t\t\t\t\t\t\t This is Prism, where you can get verification for your Credential." +
             "\n\t\t\t\t\t\t\t Please use the link http://localhost:8080/api/verify" +
-            "\n\n\t\t\t\t\t\t\t Thank you    Gracias    Merci    Sağol ..."
+            "\n\n\t\t\t\t\t\t\t Thank you    Gracias    Merci    Sağol ...")
 
     @Post("/api/verify")
-    fun verify(holderSignedCredentialDID:String, userName:String, education:HashMap<String,String>):String{
+    fun verify(holderSignedCredentialDID:String, userName:String, education:HashMap<String,String>): MutableHttpResponse<String>? {
         var result = VerifyEndpoint.verifier(holderSignedCredentialDID, userName, education)
         println("Verification Result: " + result )
-        return result
+        return ok(result)
     }
     // todo: cloud host
     // todo: Frontend integration test
