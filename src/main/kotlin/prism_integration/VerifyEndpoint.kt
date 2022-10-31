@@ -2,23 +2,61 @@ package prism_integration
 
 import com.google.gson.Gson
 import com.google.gson.internal.LinkedTreeMap
+import io.iohk.atala.prism.api.node.NodeAuthApiImpl
+import io.iohk.atala.prism.credentials.PrismCredential
 import io.iohk.atala.prism.credentials.content.CredentialContent
+import io.iohk.atala.prism.crypto.MerkleInclusionProof
+import io.iohk.atala.prism.crypto.keys.ECPrivateKey
 import io.iohk.atala.prism.crypto.signature.ECSignature
 import io.iohk.atala.prism.identity.*
 import io.micronaut.http.annotation.Controller
 import io.micronaut.http.annotation.Get
 import io.micronaut.http.annotation.Post
+import kotlinx.coroutines.runBlocking
 import java.util.*
 
+class myPrismCredential(
+    override val canonicalForm: String,
+    override val content: CredentialContent,
+    override val contentBytes: ByteArray,
+    override val signature: ECSignature?
+) : PrismCredential(){
+    override fun sign(privateKey: ECPrivateKey): PrismCredential {
+        TODO("Not yet implemented")
+    }
+
+}
 class VerifyEndpoint{
 
     companion object {
+
+        fun verifier(nodeAuthApi: NodeAuthApiImpl,
+                     holderSignedCredential: PrismCredential,
+                     holderCredentialMerkleProof: MerkleInclusionProof
+        ) {
+            // Verifier, who owns credentialClam, can easily verify the validity of the credentials.
+            println("""Received Holder full signed credential: ${holderSignedCredential} """ )
+            println("Verifier is Verifying received credential using single convenience method")
+
+            val credentialVerificationServiceResult = runBlocking {
+                nodeAuthApi.verify(
+                    signedCredential = holderSignedCredential,
+                    merkleInclusionProof = holderCredentialMerkleProof
+                )
+            }
+            require(credentialVerificationServiceResult.verificationErrors.isEmpty()) {
+                "VerificationErrors should be empty: YOU SHOULD NOT RECEIVE THIS MESSAGE IF VERIFICATION WERE SUCCESSFUL."
+            }
+        }
+
         fun prismCredential_maker(contentBytes:ByteArray,
                                   content:CredentialContent,
                                   signature: ECSignature,
                                   canonicalForm: String){
-            // var cred: PrismCredential = PrismCredential( contentBytes, content, signature, canonicalForm: String )
-            // todo: find a way to create verifiyable Prism Credential object
+            var cred: PrismCredential = myPrismCredential(canonicalForm,content, contentBytes, signature )
+            //todo: make holderSignedCredential,holderCredentialMerkleProof and nodeAuthApi
+            // todo: call verifier()
+
         }
 
         fun verifier(holderSignedCredential: String, userName: String, education: HashMap<String, String>): String {
