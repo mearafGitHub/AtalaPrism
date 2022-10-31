@@ -5,7 +5,7 @@ import com.google.gson.internal.LinkedTreeMap
 import io.iohk.atala.prism.api.node.NodeAuthApiImpl
 import io.iohk.atala.prism.credentials.PrismCredential
 import io.iohk.atala.prism.credentials.content.CredentialContent
-import io.iohk.atala.prism.crypto.MerkleInclusionProof
+import io.iohk.atala.prism.crypto.*
 import io.iohk.atala.prism.crypto.keys.ECPrivateKey
 import io.iohk.atala.prism.crypto.signature.ECSignature
 import io.iohk.atala.prism.identity.*
@@ -29,12 +29,10 @@ class myPrismCredential(
 class VerifyEndpoint{
 
     companion object {
-
-        fun verifier(nodeAuthApi: NodeAuthApiImpl,
+        fun prismVerify(nodeAuthApi: NodeAuthApiImpl,
                      holderSignedCredential: PrismCredential,
                      holderCredentialMerkleProof: MerkleInclusionProof
-        ) {
-            // Verifier, who owns credentialClam, can easily verify the validity of the credentials.
+        ):Boolean {
             println("""Received Holder full signed credential: ${holderSignedCredential} """ )
             println("Verifier is Verifying received credential using single convenience method")
 
@@ -44,22 +42,37 @@ class VerifyEndpoint{
                     merkleInclusionProof = holderCredentialMerkleProof
                 )
             }
-            require(credentialVerificationServiceResult.verificationErrors.isEmpty()) {
+            var res = require(credentialVerificationServiceResult.verificationErrors.isEmpty()) {
                 "VerificationErrors should be empty: YOU SHOULD NOT RECEIVE THIS MESSAGE IF VERIFICATION WERE SUCCESSFUL."
             }
+            println(""" the verification result:  $res""")
+            // todo: if the result can be comparable then use conditional statement to return T/F
+
+            return true
         }
 
         fun prismCredential_maker(contentBytes:ByteArray,
                                   content:CredentialContent,
                                   signature: ECSignature,
-                                  canonicalForm: String){
-            var cred: PrismCredential = myPrismCredential(canonicalForm,content, contentBytes, signature )
-            //todo: make holderSignedCredential,holderCredentialMerkleProof and nodeAuthApi
-            // todo: call verifier()
+                                  canonicalForm: String):List<Any>
+        {
+            var holderSignedCredential: PrismCredential = myPrismCredential(canonicalForm, content, contentBytes, signature)
 
+            // making the holderCredentialMerkleProof
+            var hash :Hash = Sha256Digest.fromBytes(contentBytes) // todo: has ERROR: The given byte array does not correspond to a SHA256 hash. It must have exactly 32 bytes
+            var siblings:List<Hash> = listOf()
+            var index: Index = 0
+            var holderCredentialMerkleProof : MerkleInclusionProof = MerkleInclusionProof(hash,index,siblings)
+
+            var credentialAndProfList:List<Any> = listOfNotNull(holderSignedCredential, holderCredentialMerkleProof)
+            return credentialAndProfList
         }
 
-        fun verifier(holderSignedCredential: String, userName: String, education: HashMap<String, String>): String {
+        fun fairwayVerify(credContentMap: Map<String, Any>, userName: String, education: HashMap<String, String>): String {
+            println("fairwayVerify() debug")
+            println("credential map:  $credContentMap")
+            println("Education array: $education")
+            println("userName: $userName")
 
             val organizations:HashMap<String, String> = hashMapOf(
                 "did:prism:297506b34a0572ac615e04ea440d34c73e2948df491d50ebe1f8ba1d8d13f065" to "Addis Ababa University",
@@ -68,46 +81,61 @@ class VerifyEndpoint{
                 "did:prism:9fe2b88c280a0159a2c4d7e7e74f0cf96f2af976adf9a03bcbb5db02c71f8dbe"  to "Jimma University",
                 "did:prism:855ade0b7ffded0f9950aff5faa560b47b2e90ef55cd5791c09abf5e2e949196" to "Bahir Dar University"
             )
-            // todo: split 'holderSignedCredential' at (.)
-            val decoder: Base64.Decoder = Base64.getDecoder()
-            val content = String(decoder.decode(holderSignedCredential))
-            println("Credential content: $content")
-            println(content::class.java.typeName)
 
-            var map: Map<String, Any> = HashMap()
-            var contentHashMmap = Gson().fromJson(content, map.javaClass)
-            println()
-            println(contentHashMmap)
-            println()
-
-            var subject: LinkedTreeMap<String, Any> = contentHashMmap.get("credentialSubject") as LinkedTreeMap<String, Any>
+            var subject: LinkedTreeMap<String, Any> = credContentMap.get("credentialSubject") as LinkedTreeMap<String, Any>
             println("Subject:  $subject")
 
             // School name vs value in 'organizations' ^ return INVALID CREDENTIAL - Wrong Issuer if false
-            if ( education.get("school") != organizations.get(contentHashMmap.get("id")) ){
+            if ( education.get("school") != organizations.get(credContentMap.get("id")) ){
                 println()
-                val temp = organizations.get(contentHashMmap.get("id"))
-                println("School: $education[1]   $temp")
+                println(education.get("school"))
+                println(organizations.get(credContentMap.get("id")))
                 return  "INVALID CREDENTIAL - Wrong Issuer"
-                }
-            // Else holder name vs username in 'userName' ^ return INVALID CREDENTIAL - Not owner if false
+            }
+            // Holder name vs username in 'userName' ^ return INVALID CREDENTIAL - Not owner if false
             else if (userName != subject.get("name")) {
                 return "INVALID CREDENTIAL - Not owner."
             }
-            // Else certificate vs field_of_study ^ return INVALID CREDENTIAL - Wrong Field of study
+            // Certificate vs field_of_study ^ return INVALID CREDENTIAL - Wrong Field of study
             else if (subject.get("certificate") != "Certificate of "+ education.get("study")){
-                val temp = "Certificate of "+ education.get("study")
-                val temp2 = subject.get("certificate")
-                println("stydy: $temp2   $temp")
                 return "INVALID CREDENTIAL - Wrong Field of study"
             }
             // Else ^ return { VERIFIED OR VALID CREDENTIAL }
-
             return "VALID"
+        }
+
+        fun verifier(encodedSignedCredential: String, userName: String, education: HashMap<String, String>): String {
+
+            val encodedSignedCredentialArray = encodedSignedCredential.split(".").toTypedArray()
+            val holderSignedCredentialHash_contentBytes = encodedSignedCredentialArray[0]
+            val other_encode = encodedSignedCredentialArray[1]
+
+            val decoder: Base64.Decoder = Base64.getDecoder()
+            val credContent = String(decoder.decode(holderSignedCredentialHash_contentBytes))
+            var map: Map<String, Any> = HashMap()
+            var credContentMap = Gson().fromJson(credContent, map.javaClass)
+            // todo: talk to Esteban Garcia on creating PrismCredential and the errors
+            // var credContentJson: JsonObject = JsonObject(credContentMap as Map<String, JsonElement>)
+            // var contentBytes:ByteArray = credContent.toByteArray()
+            // var content:CredentialContent = CredentialContent(credContentJson)
+            // var signature: ECSignature = ECSignature(data = contentBytes)
+            // var canonicalForm: String = credContentMap.get("id") as String
+            // var credAndProof = prismCredential_maker(contentBytes,content,signature,canonicalForm)
+            // var credMerkleProof = credAndProof[1] as MerkleInclusionProof
+            // var signedCred = credAndProof[0] as PrismCredential
+            // makes the NodeAuthApiImpl instance
+            // val environment = "ppp-vasil.atalaprism.io"
+            // val nodeAuthApi = NodeAuthApiImpl(GrpcOptions("http", environment, 50053))
+            // if (prismVerify(nodeAuthApi, signedCred, credMerkleProof)){fairwayVerify(credContentMap, userName, education)}
+
+            return  fairwayVerify(credContentMap, userName, education) // "Testing..."
         }
     }
 
 }
+
+private typealias Hash = Sha256Digest
+private typealias Index = Int
 
 @Controller("/") // accessed via the link http://localhost:8080/api/verify
 class VerifyService {

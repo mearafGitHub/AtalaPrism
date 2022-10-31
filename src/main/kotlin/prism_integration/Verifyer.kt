@@ -228,7 +228,6 @@ class Verifyer{
 
     fun main(args: Array<String>) {
         println("Hello Atala Prism!")
-///*
         val environment = "ppp-vasil.atalaprism.io"
         val nodeAuthApi = NodeAuthApiImpl(GrpcOptions("http", environment, 50053))
         val holderUnpublishedDid = holderCreateDID()
@@ -243,7 +242,7 @@ class Verifyer{
             holderSignedCredential as PrismCredential,
             holderCredentialMerkleProof as MerkleInclusionProof
         )
-//*/
+
     }
 
 
