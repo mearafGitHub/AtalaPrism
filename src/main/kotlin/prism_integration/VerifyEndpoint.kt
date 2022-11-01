@@ -75,6 +75,7 @@ class VerifyEndpoint{
             println("credential map:  $credContentMap")
             println("Education array: $education")
             println("userName: $userName")
+            var gson = Gson()
 
             var errorMsg = mutableMapOf<String, Any>(
                 "flag" to false,
@@ -94,21 +95,21 @@ class VerifyEndpoint{
 
             // School name vs value in 'organizations' ^ return - Wrong Issuer if false
             if ( education.get("school") != organizations.get(credContentMap.get("id")) ){
-                println()
-                println(education.get("school"))
-                println(organizations.get(credContentMap.get("id")))
                 errorMsg["message"] = "Wrong Issuer."
-                return  errorMsg
+                var jsonErrorMsg = gson.toJson(errorMsg)
+                return  jsonErrorMsg
             }
             // Holder name vs username in 'userName' ^ return - Not owner if false
             else if (userName != subject.get("name")) {
                 errorMsg["message"] = "This User is Not the Owner of the Credential."
-                return  errorMsg
+                var jsonErrorMsg = gson.toJson(errorMsg)
+                return  jsonErrorMsg
             }
             // Certificate vs field_of_study ^ return - Wrong Field of study
             else if (subject.get("certificate") != "Certificate of "+ education.get("study")){
                 errorMsg["message"] = "Wrong Field Of Study."
-                return  errorMsg
+                var jsonErrorMsg = gson.toJson(errorMsg)
+                return  jsonErrorMsg
             }
             // Else ^ return ture
             return true
