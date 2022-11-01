@@ -145,7 +145,8 @@ class VerifyEndpoint{
             val environment = "ppp-vasil.atalaprism.io"
             val nodeAuthApi = NodeAuthApiImpl(GrpcOptions("http", environment, 50053))
 
-            // todo: talk to Esteban Garcia on creating PrismCredential and the errors (not quite important but can be a good add)
+            // todo: talk to Esteban Garcia on creating PrismCredential and the errors
+            //  (not quite important for now but needs an adjustment)
             // if (prismVerify(nodeAuthApi, signedCred, credMerkleProof)){
                 // return fairwayVerify(credContentMap, userName, education)
             // }
