@@ -70,11 +70,16 @@ class VerifyEndpoint{
             return credentialAndProfList
         }
 
-        fun fairwayVerify(credContentMap: Map<String, Any>, userName: String, education: HashMap<String, String>): String {
-            println("fairwayVerify() debug")
+        fun fairwayVerify(credContentMap: Map<String, Any>, userName: String, education: HashMap<String, String>): Any {
+            // println("fairwayVerify() debug")
             println("credential map:  $credContentMap")
             println("Education array: $education")
             println("userName: $userName")
+
+            var errorMsg = mutableMapOf<String, Any>(
+                "flag" to false,
+                "message" to ""
+            )
 
             val organizations:HashMap<String, String> = hashMapOf(
                 "did:prism:297506b34a0572ac615e04ea440d34c73e2948df491d50ebe1f8ba1d8d13f065" to "Addis Ababa University",
@@ -87,26 +92,29 @@ class VerifyEndpoint{
             var subject: LinkedTreeMap<String, Any> = credContentMap.get("credentialSubject") as LinkedTreeMap<String, Any>
             println("Subject:  $subject")
 
-            // School name vs value in 'organizations' ^ return INVALID CREDENTIAL - Wrong Issuer if false
+            // School name vs value in 'organizations' ^ return - Wrong Issuer if false
             if ( education.get("school") != organizations.get(credContentMap.get("id")) ){
                 println()
                 println(education.get("school"))
                 println(organizations.get(credContentMap.get("id")))
-                return  "INVALID CREDENTIAL - Wrong Issuer"
+                errorMsg["message"] = "Wrong Issuer."
+                return  errorMsg
             }
-            // Holder name vs username in 'userName' ^ return INVALID CREDENTIAL - Not owner if false
+            // Holder name vs username in 'userName' ^ return - Not owner if false
             else if (userName != subject.get("name")) {
-                return "INVALID CREDENTIAL - Not owner."
+                errorMsg["message"] = "This User is Not the Owner of the Credential."
+                return  errorMsg
             }
-            // Certificate vs field_of_study ^ return INVALID CREDENTIAL - Wrong Field of study
+            // Certificate vs field_of_study ^ return - Wrong Field of study
             else if (subject.get("certificate") != "Certificate of "+ education.get("study")){
-                return "INVALID CREDENTIAL - Wrong Field of study"
+                errorMsg["message"] = "Wrong Field Of Study."
+                return  errorMsg
             }
-            // Else ^ return { VERIFIED OR VALID CREDENTIAL }
-            return "VALID"
+            // Else ^ return ture
+            return true
         }
 
-        fun verifier(encodedSignedCredential: String, userName: String, education: HashMap<String, String>): String {
+        fun verifier(encodedSignedCredential: String, userName: String, education: HashMap<String, String>): Any {
 
             val encodedSignedCredentialArray = encodedSignedCredential.split(".").toTypedArray()
             val holderSignedCredentialHash_contentBytes = encodedSignedCredentialArray[0]
@@ -153,7 +161,7 @@ class VerifyService {
             "\n\n\t\t\t\t\t\t\t Thank you    Gracias    Merci    Sağol ...")
 
     @Post("/api/verify")
-    fun verify(holderSignedCredentialDID:String, userName:String, education:HashMap<String,String>): MutableHttpResponse<String>? {
+    fun verify(holderSignedCredentialDID:String, userName:String, education:HashMap<String,String>): MutableHttpResponse<Any>? {
         var result = VerifyEndpoint.verifier(holderSignedCredentialDID, userName, education)
         println("Verification Result: " + result )
         return ok(result)
