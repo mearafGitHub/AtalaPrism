@@ -9,12 +9,15 @@ import io.iohk.atala.prism.crypto.*
 import io.iohk.atala.prism.crypto.keys.ECPrivateKey
 import io.iohk.atala.prism.crypto.signature.ECSignature
 import io.iohk.atala.prism.identity.*
+import io.iohk.atala.prism.protos.GrpcOptions
 import io.micronaut.http.HttpResponse.ok
 import io.micronaut.http.MutableHttpResponse
 import io.micronaut.http.annotation.Controller
 import io.micronaut.http.annotation.Get
 import io.micronaut.http.annotation.Post
 import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonObject
 import java.util.*
 
 class myPrismCredential(
@@ -49,7 +52,6 @@ class VerifyEndpoint{
             }
             println(""" the verification result:  $res""")
             // todo: if the result can be comparable then use conditional statement to return T/F
-
             return true
         }
 
@@ -112,32 +114,38 @@ class VerifyEndpoint{
                 return  jsonErrorMsg
             }
             // Else ^ return ture
-            return true
+            errorMsg["message"] = "Valid Credential."
+            errorMsg["flag"] = true
+            var jsonErrorMsg = gson.toJson(errorMsg)
+            return  jsonErrorMsg
+            return jsonErrorMsg
         }
 
         fun verifier(encodedSignedCredential: String, userName: String, education: HashMap<String, String>): Any {
 
             val encodedSignedCredentialArray = encodedSignedCredential.split(".").toTypedArray()
             val holderSignedCredentialHash_contentBytes = encodedSignedCredentialArray[0]
-            val other_encode = encodedSignedCredentialArray[1]
+            val someThing = encodedSignedCredentialArray[1]
 
             val decoder: Base64.Decoder = Base64.getDecoder()
             val credContent = String(decoder.decode(holderSignedCredentialHash_contentBytes))
             var map: Map<String, Any> = HashMap()
             var credContentMap = Gson().fromJson(credContent, map.javaClass)
-            // todo: talk to Esteban Garcia on creating PrismCredential and the errors (not quite urgent but can be a good add)
-            // var credContentJson: JsonObject = JsonObject(credContentMap as Map<String, JsonElement>)
-            // var contentBytes:ByteArray = credContent.toByteArray()
-            // var content:CredentialContent = CredentialContent(credContentJson)
-            // var signature: ECSignature = ECSignature(data = contentBytes)
-            // var canonicalForm: String = credContentMap.get("id") as String
-            // var credAndProof = prismCredential_maker(contentBytes,content,signature,canonicalForm)
-            // var credMerkleProof = credAndProof[1] as MerkleInclusionProof
-            // var signedCred = credAndProof[0] as PrismCredential
-            // makes the NodeAuthApiImpl instance
-            // val environment = "ppp-vasil.atalaprism.io"
-            // val nodeAuthApi = NodeAuthApiImpl(GrpcOptions("http", environment, 50053))
+            var credContentJson: JsonObject = JsonObject(credContentMap as Map<String, JsonElement>)
+            var contentBytes:ByteArray = credContent.toByteArray()
+            var content:CredentialContent = CredentialContent(credContentJson)
+            var signature: ECSignature = ECSignature(data = contentBytes)
+            var canonicalForm: String = credContentMap.get("id") as String
+            var credAndProof = prismCredential_maker(contentBytes,content,signature,canonicalForm)
 
+            var credMerkleProof = credAndProof[1] as MerkleInclusionProof
+            var signedCred = credAndProof[0] as PrismCredential
+
+            // makes the NodeAuthApiImpl instance
+            val environment = "ppp-vasil.atalaprism.io"
+            val nodeAuthApi = NodeAuthApiImpl(GrpcOptions("http", environment, 50053))
+
+            // todo: talk to Esteban Garcia on creating PrismCredential and the errors (not quite important but can be a good add)
             // if (prismVerify(nodeAuthApi, signedCred, credMerkleProof)){
                 // return fairwayVerify(credContentMap, userName, education)
             // }
@@ -153,7 +161,6 @@ private typealias Index = Int
 
 @Controller("/") // accessed via the link http://localhost:8080/api/verify
 class VerifyService {
-
     @Get("/")
     fun index(): MutableHttpResponse<String>? = ok("\n\n\n\n\n\n\n\n\n\n\n\n" +
             "\t\t\t\t\t\t\t Hello    Hola    Bonjur    Merehaba ...  " +
