@@ -4,6 +4,8 @@ plugins {
     id("org.jetbrains.kotlin.plugin.allopen") version "1.6.21"
     id("com.github.johnrengelman.shadow") version "7.1.2"
     id("io.micronaut.application") version "3.6.2"
+    id("io.micronaut.docker") version "3.6.3"
+
 }
 
 version = "0.1"
