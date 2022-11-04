@@ -18,6 +18,27 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 
+/*
+* Holder full signed credential:
+* JsonBasedCredential(
+*    content=CredentialContent(fields={
+*            "id":"did:prism:54bd4de36f9de002a803175448bc41887292425394039f874a3708a6d71d4ef7",
+*            "keyId":"issuing0",
+*            "credentialSubject":{
+*                   "name":"Some One",
+*                   "certificate":"Certificate of Computer Science Degree",
+*                   "issuer":"Addis Ababa University",
+*                   "id":"did:prism:ad54f2de0c4466f2033aa762b5ec00fc144e5c78f6eb9dc0a32d06a19e5b76b8:Cj8KPRI7CgdtYXN0ZXIwEAFKLgoJc2VjcDI1NmsxEiECRyKjXgScd6nOsr76u0bCTyxwhhoSJf7cDJsuCAoAo_g"}}),
+*    signature=io.iohk.atala.prism.crypto.signature.ECSignature@5bd73d1a)
+
+* Issuer [did:prism:54bd4de36f9de002a803175448bc41887292425394039f874a3708a6d71d4ef7] issued new credentials for the holder [did:prism:ad54f2de0c4466f2033aa762b5ec00fc144e5c78f6eb9dc0a32d06a19e5b76b8:Cj8KPRI7CgdtYXN0ZXIwEAFKLgoJc2VjcDI1NmsxEiECRyKjXgScd6nOsr76u0bCTyxwhhoSJf7cDJsuCAoAo_g].
+- issueCredentialBatch operation identifier: 3fa1c52f9be93a5526e9506af4d1c7b1c031c5b9837f94a7a92875ac4c1ce82c
+- Holder's Credential content: CredentialContent(fields={"id":"did:prism:54bd4de36f9de002a803175448bc41887292425394039f874a3708a6d71d4ef7","keyId":"issuing0","credentialSubject":{"name":"Mearaf Tadewos","certificate":"Certificate of Computer Science Degree","issuer":"Addis Ababa University","id":"did:prism:ad54f2de0c4466f2033aa762b5ec00fc144e5c78f6eb9dc0a32d06a19e5b76b8:Cj8KPRI7CgdtYXN0ZXIwEAFKLgoJc2VjcDI1NmsxEiECRyKjXgScd6nOsr76u0bCTyxwhhoSJf7cDJsuCAoAo_g"}})
+- Holder Signed credential: eyJpZCI6ImRpZDpwcmlzbTo1NGJkNGRlMzZmOWRlMDAyYTgwMzE3NTQ0OGJjNDE4ODcyOTI0MjUzOTQwMzlmODc0YTM3MDhhNmQ3MWQ0ZWY3Iiwia2V5SWQiOiJpc3N1aW5nMCIsImNyZWRlbnRpYWxTdWJqZWN0Ijp7Im5hbWUiOiJNZWFyYWYgVGFkZXdvcyIsImNlcnRpZmljYXRlIjoiQ2VydGlmaWNhdGUgb2YgQ29tcHV0ZXIgU2NpZW5jZSBEZWdyZWUiLCJpc3N1ZXIiOiJBZGRpcyBBYmFiYSBVbml2ZXJzaXR5IiwiaWQiOiJkaWQ6cHJpc206YWQ1NGYyZGUwYzQ0NjZmMjAzM2FhNzYyYjVlYzAwZmMxNDRlNWM3OGY2ZWI5ZGMwYTMyZDA2YTE5ZTViNzZiODpDajhLUFJJN0NnZHRZWE4wWlhJd0VBRktMZ29KYzJWamNESTFObXN4RWlFQ1J5S2pYZ1NjZDZuT3NyNzZ1MGJDVHl4d2hob1NKZjdjREpzdUNBb0FvX2cifX0.MEYCIQDFqfCSxNMWIIMdGuGYFUA5NTPEC-nveVqxG82mJ0KuZgIhAO5k-E5F_UM0l18EDeYOTZVyaC74uQ04cISgDfvp89SW
+- Inclusion proof (encoded): {"hash":"f135ae2d8ff98c8133f0bf815504e355e8af087414ecb7689d6fbafe91be13a3","index":0,"siblings":[]}
+- Batch id: CredentialBatchId(id=fb627dd81bf20e88adf094b4e17e1a95e91b33384310eb079687e5ba665705fe
+* */
+
 class Verifyer{
     // creates unpublished did for holder
     fun holderCreateDID(): LongFormPrismDid {
@@ -28,7 +49,6 @@ class Verifyer{
         println("Holder: DID generated: $holderUnpublishedDid")
         return holderUnpublishedDid
     }
-
     // Waits until an operation is confirmed by the Cardano network.
     // NOTE: Confirmation doesn't necessarily mean that operation was applied.
     // For example, it could be rejected because of an incorrect signature or other reasons.

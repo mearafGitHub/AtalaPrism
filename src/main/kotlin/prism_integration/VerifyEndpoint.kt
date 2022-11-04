@@ -167,7 +167,11 @@ class VerifyService {
             "\t\t\t\t\t\t\t Hello    Hola    Bonjur    Merehaba ...  " +
             "\n\n\t\t\t\t\t\t\t This is Prism, where you can get verification for your Credential." +
             "\n\t\t\t\t\t\t\t Please use the link http://localhost:8080/api/verify" +
-            "\n\n\t\t\t\t\t\t\t Thank you    Gracias    Merci    Sağol ...")
+            "\n\n\t\t\t\t\t\t\t Thank you    Gracias    Merci    Sağol ..."+
+            "\n\n\n\n" +
+            "\n" +
+            "\n"
+    )
 
     @Post("/api/verify")
     fun verify(holderSignedCredentialDID:String, userName:String, education:HashMap<String,String>): MutableHttpResponse<Any>? {
@@ -175,6 +179,6 @@ class VerifyService {
         println("Verification Result: " + result )
         return ok(result)
     }
-    // todo: cloud host
+    // todo: dockerize
     // todo: Frontend integration test
 }
