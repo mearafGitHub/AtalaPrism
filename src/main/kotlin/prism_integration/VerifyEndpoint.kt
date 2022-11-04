@@ -9,15 +9,12 @@ import io.iohk.atala.prism.crypto.*
 import io.iohk.atala.prism.crypto.keys.ECPrivateKey
 import io.iohk.atala.prism.crypto.signature.ECSignature
 import io.iohk.atala.prism.identity.*
-import io.iohk.atala.prism.protos.GrpcOptions
 import io.micronaut.http.HttpResponse.ok
 import io.micronaut.http.MutableHttpResponse
 import io.micronaut.http.annotation.Controller
 import io.micronaut.http.annotation.Get
 import io.micronaut.http.annotation.Post
 import kotlinx.coroutines.runBlocking
-import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.JsonObject
 import java.util.*
 
 class myPrismCredential(
@@ -131,22 +128,20 @@ class VerifyEndpoint{
             val credContent = String(decoder.decode(holderSignedCredentialHash_contentBytes))
             var map: Map<String, Any> = HashMap()
             var credContentMap = Gson().fromJson(credContent, map.javaClass)
-            var credContentJson: JsonObject = JsonObject(credContentMap as Map<String, JsonElement>)
-            var contentBytes:ByteArray = credContent.toByteArray()
-            var content:CredentialContent = CredentialContent(credContentJson)
-            var signature: ECSignature = ECSignature(data = contentBytes)
-            var canonicalForm: String = credContentMap.get("id") as String
-            var credAndProof = prismCredential_maker(contentBytes,content,signature,canonicalForm)
 
-            var credMerkleProof = credAndProof[1] as MerkleInclusionProof
-            var signedCred = credAndProof[0] as PrismCredential
+            // var credContentJson: JsonObject = JsonObject(credContentMap as Map<String, JsonElement>)
+            // var contentBytes:ByteArray = credContent.toByteArray()
+            // var content:CredentialContent = CredentialContent(credContentJson)
+            // var signature: ECSignature = ECSignature(data = contentBytes)
+            // var canonicalForm: String = credContentMap.get("id") as String
+            // var credAndProof = prismCredential_maker(contentBytes,content,signature,canonicalForm)
+
+            // var credMerkleProof = credAndProof[1] as MerkleInclusionProof
+            // var signedCred = credAndProof[0] as PrismCredential
 
             // makes the NodeAuthApiImpl instance
-            val environment = "ppp-vasil.atalaprism.io"
-            val nodeAuthApi = NodeAuthApiImpl(GrpcOptions("http", environment, 50053))
-
-            // todo: talk to Esteban Garcia on creating PrismCredential and the errors
-            //  (not quite important for now but needs an adjustment)
+            // val environment = "ppp-vasil.atalaprism.io"
+            // val nodeAuthApi = NodeAuthApiImpl(GrpcOptions("http", environment, 50053))
             // if (prismVerify(nodeAuthApi, signedCred, credMerkleProof)){
                 // return fairwayVerify(credContentMap, userName, education)
             // }
