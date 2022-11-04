@@ -49,7 +49,7 @@ class VerifyEndpoint{
                 "VerificationErrors should be empty: YOU SHOULD NOT RECEIVE THIS MESSAGE IF VERIFICATION WERE SUCCESSFUL."
             }
             println(""" the verification result:  $res""")
-            // todo: if the result can be comparable then use conditional statement to return T/F
+            // Note: if the result can be comparable then use conditional statement to return T/F
             return true
         }
 
@@ -61,7 +61,8 @@ class VerifyEndpoint{
             var holderSignedCredential: PrismCredential = myPrismCredential(canonicalForm, content, contentBytes, signature)
 
             // making the holderCredentialMerkleProof
-            var hash :Hash = Sha256Digest.fromBytes(contentBytes) // todo: has ERROR: The given byte array does not correspond to a SHA256 hash. It must have exactly 32 bytes
+            var hash :Hash = Sha256Digest.fromBytes(contentBytes) // Note: has ERROR: The given byte array does not correspond
+            // to a SHA256 hash. It must have exactly 32 bytes
             var siblings:List<Hash> = listOf()
             var index: Index = 0
             var holderCredentialMerkleProof : MerkleInclusionProof = MerkleInclusionProof(hash,index,siblings)
