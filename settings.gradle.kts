@@ -1,3 +1,3 @@
 
-rootProject.name="prism_integration"
+rootProject.name="PrismIntegration"
 

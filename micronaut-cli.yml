@@ -1,5 +1,5 @@
 applicationType: default
-defaultPackage: prism_integration
+defaultPackage: PrismIntegration
 testFramework: junit
 sourceLanguage: kotlin
 buildTool: gradle_kotlin

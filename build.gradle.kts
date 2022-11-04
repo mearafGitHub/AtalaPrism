@@ -3,18 +3,14 @@ plugins {
     id("org.jetbrains.kotlin.kapt") version "1.6.21"
     id("org.jetbrains.kotlin.plugin.allopen") version "1.6.21"
     id("com.github.johnrengelman.shadow") version "7.1.2"
-    id("io.micronaut.application") version "3.6.2"
+    id("io.micronaut.application") version "3.6.3"
     id("io.micronaut.docker") version "3.6.3"
-
 }
 
 version = "0.1"
-group = "prism_integration"
+group = "PrismIntegration"
 
 val kotlinVersion=project.properties.get("kotlinVersion")
-
-group = "org.example"
-version = "1.0-SNAPSHOT"
 
 repositories {
     mavenCentral()
@@ -47,7 +43,6 @@ dependencies {
 
     runtimeOnly("com.fasterxml.jackson.module:jackson-module-kotlin")
 
-    testImplementation(kotlin("test"))
     // Cryptography primitives support
     implementation("io.iohk.atala:prism-crypto:v1.4.1")
     // Decentralized Identifiers (DIDs) operations support
@@ -68,18 +63,17 @@ dependencies {
 
 }
 
-
 application {
-    mainClass.set("com.fiarway.prismintegration.ApplicationKt")
+    mainClass.set("PrismIntegration.ApplicationKt")
 }
 java {
-    sourceCompatibility = JavaVersion.toVersion("11")
+    sourceCompatibility = JavaVersion.toVersion("17")
 }
 
 tasks {
     compileKotlin {
         kotlinOptions {
-            jvmTarget = "11"
+            jvmTarget = "17"
         }
     }
     compileTestKotlin {
@@ -94,7 +88,7 @@ micronaut {
     testRuntime("junit5")
     processing {
         incremental(true)
-        annotations("prism_integration.*")
+        annotations("PrismIntegration.*")
     }
 }
 
