@@ -70,7 +70,7 @@ class VerifyEndpoint{
             return credentialAndProfList
         }
 
-        fun fairwayVerify(credContentMap: Map<String, Any>, userName: String, education: HashMap<String, String>): Any {
+        fun fairwayVerify(credContentMap: Map<String, Any>, userName: String, education: HashMap<String, String>): MutableMap<String,Any> {
             // println("fairwayVerify() debug")
             println("credential map:  $credContentMap")
             println("Education array: $education")
@@ -93,33 +93,28 @@ class VerifyEndpoint{
             var subject: LinkedTreeMap<String, Any> = credContentMap.get("credentialSubject") as LinkedTreeMap<String, Any>
             println("Subject:  $subject")
 
-            // School name vs value in 'organizations' ^ return - Wrong Issuer if false
+            // School name vs value in 'organizations' return - Wrong Issuer if false
             if ( education.get("school") != organizations.get(credContentMap.get("id")) ){
                 errorMsg["message"] = "Wrong Issuer."
-                var jsonErrorMsg = gson.toJson(errorMsg)
-                return  jsonErrorMsg
+                return  errorMsg
             }
-            // Holder name vs username in 'userName' ^ return - Not owner if false
+            // Holder name vs username in 'userName' return - Not owner if false
             else if (userName != subject.get("name")) {
                 errorMsg["message"] = "This User is Not the Owner of the Credential."
-                var jsonErrorMsg = gson.toJson(errorMsg)
-                return  jsonErrorMsg
+                return  errorMsg
             }
-            // Certificate vs field_of_study ^ return - Wrong Field of study
+            // Certificate vs field_of_study return - Wrong Field of study
             else if (subject.get("certificate") != "Certificate of "+ education.get("study")){
                 errorMsg["message"] = "Wrong Field Of Study."
-                var jsonErrorMsg = gson.toJson(errorMsg)
-                return  jsonErrorMsg
+                return  errorMsg
             }
-            // Else ^ return ture
+            // Else  return ture
             errorMsg["message"] = "Valid Credential."
             errorMsg["flag"] = true
-            var jsonErrorMsg = gson.toJson(errorMsg)
-            return  jsonErrorMsg
-            return jsonErrorMsg
+            return  errorMsg
         }
 
-        fun verifier(encodedSignedCredential: String, userName: String, education: HashMap<String, String>): Any {
+        fun verifier(encodedSignedCredential: String, userName: String, education: HashMap<String, String>): MutableMap<String,Any> {
 
             val encodedSignedCredentialArray = encodedSignedCredential.split(".").toTypedArray()
             val holderSignedCredentialHash_contentBytes = encodedSignedCredentialArray[0]
@@ -143,8 +138,6 @@ class VerifyEndpoint{
             // val environment = "ppp-vasil.atalaprism.io"
             // val nodeAuthApi = NodeAuthApiImpl(GrpcOptions("http", environment, 50053))
 
-            // todo: talk to Esteban Garcia on creating PrismCredential and the errors
-            //  (not quite important for now but needs an adjustment)
             // if (prismVerify(nodeAuthApi, signedCred, credMerkleProof)){
             // return fairwayVerify(credContentMap, userName, education)
             // }
@@ -177,6 +170,6 @@ class VerifyService {
         println("Verification Result: " + result )
         return ok(result)
     }
-    // todo: dockerize
+    // todo: containerise & Deploy
     // todo: Frontend integration test
 }
