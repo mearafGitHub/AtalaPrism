@@ -1,0 +1,1 @@
+web: java $JAVA_OPTS -Dmicronaut.environments=heroku -D server.port=$PORT -jar build/libs/PrismIntegration-0.1-runner.jar
