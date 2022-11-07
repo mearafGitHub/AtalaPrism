@@ -63,6 +63,7 @@ dependencies {
 
 }
 
+
 application {
     mainClass.set("PrismIntegration.ApplicationKt")
 }
@@ -78,7 +79,7 @@ tasks {
     }
     compileTestKotlin {
         kotlinOptions {
-            jvmTarget = "11"
+            jvmTarget = "17"
         }
     }
 }

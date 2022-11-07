@@ -1,10 +1,10 @@
 micronaut:
   application:
     name: prismIntegration
-  server:
-    port: ${PORT:8080}
-  cors:
-    enabled: true
+    server:
+      port: ${PORT:8080}
+      cors:
+        enabled: true
 netty:
   default:
     allocator:

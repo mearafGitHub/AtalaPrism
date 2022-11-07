@@ -1,21 +1,28 @@
 package PrismIntegration
 
+
 import com.google.gson.Gson
 import com.google.gson.internal.LinkedTreeMap
+import io.iohk.atala.prism.api.VerificationResult
 import io.iohk.atala.prism.api.node.NodeAuthApiImpl
 import io.iohk.atala.prism.credentials.PrismCredential
 import io.iohk.atala.prism.credentials.content.CredentialContent
+import io.iohk.atala.prism.credentials.json.JsonBasedCredential
 import io.iohk.atala.prism.crypto.*
 import io.iohk.atala.prism.crypto.keys.ECPrivateKey
 import io.iohk.atala.prism.crypto.signature.ECSignature
 import io.iohk.atala.prism.identity.*
+import io.iohk.atala.prism.protos.GrpcOptions
 import io.micronaut.http.HttpResponse.ok
 import io.micronaut.http.MutableHttpResponse
 import io.micronaut.http.annotation.Controller
 import io.micronaut.http.annotation.Get
 import io.micronaut.http.annotation.Post
 import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.json.Json
 import java.util.*
+import kotlin.collections.HashMap
+
 
 class myPrismCredential(
     override val canonicalForm: String,
@@ -24,12 +31,23 @@ class myPrismCredential(
     override val signature: ECSignature?
 ) : PrismCredential(){
     override fun sign(privateKey: ECPrivateKey): PrismCredential {
-        TODO("Prism devs are not responding")
-        //
+        TODO("Not yet implemented")
     }
 
 }
 
+class GrpcConfig {
+    companion object {
+        var protocol: String = System.getenv("PRISM_NODE_PROTOCOL") ?: "http"
+        var host: String = System.getenv("PRISM_NODE_HOST") ?: "ppp-vasil.atalaprism.io"
+        var port: String = System.getenv("PRISM_NODE_PORT") ?: "5053"
+        var token: String? = System.getenv("PRISM_NODE_TOKEN") ?: null
+        fun options(): GrpcOptions {
+            println("Connecting to $protocol://$host:$port")
+            return GrpcOptions(protocol, host, port.toInt(), token)
+        }
+    }
+}
 class VerifyEndpoint{
 
     companion object {
@@ -50,7 +68,7 @@ class VerifyEndpoint{
                 "VerificationErrors should be empty: YOU SHOULD NOT RECEIVE THIS MESSAGE IF VERIFICATION WERE SUCCESSFUL."
             }
             println(""" the verification result:  $res""")
-            // Note: if the result can be comparable then use conditional statement to return T/F
+            // todo: if the result can be comparable then use conditional statement to return T/F
             return true
         }
 
@@ -62,8 +80,7 @@ class VerifyEndpoint{
             var holderSignedCredential: PrismCredential = myPrismCredential(canonicalForm, content, contentBytes, signature)
 
             // making the holderCredentialMerkleProof
-            var hash :Hash = Sha256Digest.fromBytes(contentBytes) // Note: has ERROR: The given byte array does not correspond
-            // to a SHA256 hash. It must have exactly 32 bytes
+            var hash :Hash = Sha256Digest.fromBytes(contentBytes) // todo: has ERROR: The given byte array does not correspond to a SHA256 hash. It must have exactly 32 bytes
             var siblings:List<Hash> = listOf()
             var index: Index = 0
             var holderCredentialMerkleProof : MerkleInclusionProof = MerkleInclusionProof(hash,index,siblings)
@@ -72,7 +89,7 @@ class VerifyEndpoint{
             return credentialAndProfList
         }
 
-        fun fairwayVerify(credContentMap: Map<String, Any>, userName: String, education: HashMap<String, String>): MutableMap<String,Any> {
+        fun fairwayVerify(credContentMap: Map<String, Any>, userName: String, education: HashMap<String, String>): Any {
             // println("fairwayVerify() debug")
             println("credential map:  $credContentMap")
             println("Education array: $education")
@@ -95,31 +112,37 @@ class VerifyEndpoint{
             var subject: LinkedTreeMap<String, Any> = credContentMap.get("credentialSubject") as LinkedTreeMap<String, Any>
             println("Subject:  $subject")
 
-            // School name vs value in 'organizations' return - Wrong Issuer if false
+            // School name vs value in 'organizations' ^ return - Wrong Issuer if false
             if ( education.get("school") != organizations.get(credContentMap.get("id")) ){
                 errorMsg["message"] = "Wrong Issuer."
-                return  errorMsg
+                var jsonErrorMsg = gson.toJson(errorMsg)
+                return  jsonErrorMsg
             }
-            // Holder name vs username in 'userName' return - Not owner if false
+            // Holder name vs username in 'userName' ^ return - Not owner if false
             else if (userName != subject.get("name")) {
                 errorMsg["message"] = "This User is Not the Owner of the Credential."
-                return  errorMsg
+                var jsonErrorMsg = gson.toJson(errorMsg)
+                return  jsonErrorMsg
             }
-            // Certificate vs field_of_study return - Wrong Field of study
+            // Certificate vs field_of_study ^ return - Wrong Field of study
             else if (subject.get("certificate") != "Certificate of "+ education.get("study")){
                 errorMsg["message"] = "Wrong Field Of Study."
-                return  errorMsg
+                var jsonErrorMsg = gson.toJson(errorMsg)
+                return  jsonErrorMsg
             }
-            // Else  return ture
+            // Else ^ return ture
             errorMsg["message"] = "Valid Credential."
             errorMsg["flag"] = true
-            return  errorMsg
+            var jsonErrorMsg = gson.toJson(errorMsg)
+            return  jsonErrorMsg
+            return jsonErrorMsg
         }
 
-        fun verifier(encodedSignedCredential: String, userName: String, education: HashMap<String, String>): MutableMap<String,Any> {
+        fun verifier(encodedSignedCredential: String, userName: String, education: HashMap<String, String>): Any {
 
             val encodedSignedCredentialArray = encodedSignedCredential.split(".").toTypedArray()
             val holderSignedCredentialHash_contentBytes = encodedSignedCredentialArray[0]
+            val someThing = encodedSignedCredentialArray[1]
 
             val decoder: Base64.Decoder = Base64.getDecoder()
             val credContent = String(decoder.decode(holderSignedCredentialHash_contentBytes))
@@ -146,14 +169,48 @@ class VerifyEndpoint{
 
             return  fairwayVerify(credContentMap, userName, education) // "Testing..."
         }
+
+        private fun VerificationResult.toMessageArray(): List<String> {
+            val messages = mutableListOf<String>()
+            for (message in this.verificationErrors) {
+                messages.add(message.errorMessage)
+            }
+            return messages
+        }
+
+        fun myPrismVerify(credential: HashMap<String, Any>):List<String>{
+            val nodeAuthApi = NodeAuthApiImpl(GrpcConfig.options())
+            val signed = JsonBasedCredential.fromString(credential.get("encodedSignedCredential") as String)
+            // Use encodeDefaults to generate empty siblings field on proof
+            val format = Json { encodeDefaults = true }
+            val gson = Gson();
+            val proofData = gson.toJson(credential.get("proof"));
+
+            val proof = MerkleInclusionProof.decode(proofData)
+
+            // return listOf()
+            return runBlocking {nodeAuthApi.verify(signed, proof).toMessageArray()}
+
+        }
+
+        fun fromJsonToString(data:HashMap<String, Any>):String{
+            var return_string = ""
+            for ((key, value) in data) {
+                return_string += key+":"+value+","
+            }
+
+            return return_string
+        }
+
     }
 
 }
 
+
 private typealias Hash = Sha256Digest
 private typealias Index = Int
 
-@Controller("/") // accessed via the link http://localhost:8080/api/verify
+@Controller("/")
 class VerifyService {
     @Get("/")
     fun index(): MutableHttpResponse<String>? = ok("\n\n\n\n\n\n\n\n\n\n\n\n" +
@@ -172,6 +229,16 @@ class VerifyService {
         println("Verification Result: " + result )
         return ok(result)
     }
-    // todo: containerise & Deploy
-    // todo: Frontend integration test
+
+
+    @Post("/api/prism_verify")
+    fun verify(credentialData:HashMap<String,Any>): List<String> {
+        println("Received Data")
+        println(credentialData)
+
+        var result = VerifyEndpoint.myPrismVerify(credentialData)
+        println("Verification Result: " + result )
+        return result
+    }
+
 }
