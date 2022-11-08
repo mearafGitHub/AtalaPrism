@@ -1,0 +1,13 @@
+version: '3'
+services:
+  prism:
+    build:
+      context: .
+      args:
+        PRISM_SDK_PASSWORD: ${PRISM_SDK_PASSWORD}
+    command: bash -c "java -jar /app/build/libs/PrismIntegration-0.1-all.jar"
+    environment:
+      - PRISM_SDK_PASSWORD=${PRISM_SDK_PASSWORD}
+    ports:
+      - 8080:8080
+    restart: on-failure

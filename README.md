@@ -12,3 +12,13 @@
 - [Micronaut HTTP Client documentation](https://docs.micronaut.io/latest/guide/index.html#httpClient)
 
 
+# HOW TO RUN
+
+Place the PRISM_SDK_PASSWORD in a .env file on the root of the repository. Then run
+
+            docker-compose up
+
+You can also build the image directly
+
+            docker build --build-arg PRISM_SDK_PASSWORD=$PRISM_SDK_PASSWORD .
+    
