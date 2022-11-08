@@ -1,16 +1,7 @@
 Thumbs.db
 .DS_Store
 .gradle
-!build/libs
-build/classes
-build/kotlin
-build/docker
-build/native
-build/snapshot
-build/resources
-build/tmp
-build/.docker
-build/generated
+build/
 target/
 out/
 .micronaut/
