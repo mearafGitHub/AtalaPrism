@@ -16,8 +16,21 @@ micronaut:
             exposedHeaders:
               - Content-Type
               - Authorization
-              - Accept
+              - '*'
             maxAge: 3600
+      security:
+        enabled: true
+        endpoints:
+          login:
+            enabled: true
+          logout:
+            enabled: true
+          oauth:
+            enabled: true
+        token:
+          enabled: true
+          jwt:
+            enabled: true
 
 netty:
   default:

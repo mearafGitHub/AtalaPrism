@@ -16,7 +16,7 @@ micronaut:
             exposedHeaders:
               - Content-Type
               - Authorization
-              - Accept
+              - '*'
             maxAge: 3600
 
 netty:

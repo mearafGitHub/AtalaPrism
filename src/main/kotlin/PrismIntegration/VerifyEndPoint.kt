@@ -13,13 +13,13 @@ import io.iohk.atala.prism.crypto.keys.ECPrivateKey
 import io.iohk.atala.prism.crypto.signature.ECSignature
 import io.iohk.atala.prism.identity.*
 import io.iohk.atala.prism.protos.GrpcOptions
+import io.micronaut.core.annotation.Nullable
 import io.micronaut.http.HttpResponse.ok
 import io.micronaut.http.MutableHttpResponse
-import io.micronaut.http.annotation.Controller
-import io.micronaut.http.annotation.Get
-import io.micronaut.http.annotation.Post
+import io.micronaut.http.annotation.*
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
+import java.io.Serializable
 import java.util.*
 
 
@@ -103,7 +103,6 @@ class VerifyEndpoint{
             val organizations:HashMap<String, String> = hashMapOf(
                 "did:prism:297506b34a0572ac615e04ea440d34c73e2948df491d50ebe1f8ba1d8d13f065" to "Addis Ababa University",
                 "did:prism:4d5257d64a4dab5c69e3b97668d4df0b022966b35242699695735f8d53c5b07a" to "Hawasa University",
-                "did:prism:5567fe8833a9f88f116169df1035fa32d236537b3c1a004c559f73b333b1c4f8" to "John Snow",
                 "did:prism:9fe2b88c280a0159a2c4d7e7e74f0cf96f2af976adf9a03bcbb5db02c71f8dbe"  to "Jimma University",
                 "did:prism:855ade0b7ffded0f9950aff5faa560b47b2e90ef55cd5791c09abf5e2e949196" to "Bahir Dar University"
             )
@@ -159,7 +158,7 @@ class VerifyEndpoint{
             return messages
         }
 
-        fun myPrismVerify(credential: HashMap<String, Any>):List<String>{
+        fun myPrismVerify(credential: HashMap<String, Serializable>):List<String>{
             val nodeAuthApi = NodeAuthApiImpl(GrpcConfig.options())
             val signed = JsonBasedCredential.fromString(credential.get("encodedSignedCredential") as String)
             // Use encodeDefaults to generate empty siblings field on proof
@@ -168,7 +167,6 @@ class VerifyEndpoint{
             val proofData = gson.toJson(credential.get("proof"));
 
             val proof = MerkleInclusionProof.decode(proofData)
-
             // return listOf()
             return runBlocking {nodeAuthApi.verify(signed, proof).toMessageArray()}
 
@@ -194,15 +192,18 @@ private typealias Index = Int
 @Controller("/")
 class VerifyService {
     @Get("/")
-    fun index(): MutableHttpResponse<String>? = ok("\n\n\n\n\n\n\n\n\n\n\n\n" +
-            "\t\t\t\t\t\t\t Hello    Hola    Bonjur    Merehaba ...  " +
-            "\n\n\t\t\t\t\t\t\t This is Prism, where you can get verification for your Credential." +
-            "\n\t\t\t\t\t\t\t Please use the link http://localhost:8080/api/verify" +
-            "\n\n\t\t\t\t\t\t\t Thank you    Gracias    Merci    Sağol ..."+
-            "\n\n\n\n" +
-            "\n" +
-            "\n"
-    )
+    fun index(): MutableHttpResponse<String>?{
+        return ok("\n\n\n\n\n\n\n\n\n\n\n\n" +
+        "\t\t\t\t\t\t\t Hello    Hola    Bonjur    Merehaba ...  " +
+        "\n\n\t\t\t\t\t\t\t This is Prism, where you can get verification for your Credential." +
+        "\n\t\t\t\t\t\t\t Please use the link http://localhost:8080/api/verify" +
+        "\n\n\t\t\t\t\t\t\t Thank you    Gracias    Merci    Sağol ..."+
+        "\n\n\n\n" +
+        "\n" +
+        "\n"
+        )
+    }
+
 
     @Post("/api/verify")
     fun verify(holderSignedCredentialDID:String, userName:String, education:HashMap<String,String>):
@@ -214,13 +215,33 @@ class VerifyService {
 
 
     @Post("/api/prism_verify")
-    fun verify(credentialData:HashMap<String,Any>): List<String> {
+    fun verify(credentialData:HashMap<String,Serializable>): MutableHttpResponse<List<String>> {
         println("Received Data")
         println(credentialData)
 
+        /*
+        * var sample = hashMapOf(
+            "encodedSignedCredential" to "eyJpZCI6ImRpZDpwcmlzbTpjYWQ5NzcwMTEyMzRkMGJmNzc1OWMwNmM1M2JkMTBjZWUwYTY0OTE4MjAxMjdhMWNmYjRjNjZiMDU1MzcxMTUwIiwia2V5SWQiOiJpc3N1aW5nMCIsImNyZWRlbnRpYWxTdWJqZWN0Ijp7InBvbGljeUlkIjoiNjZiZmVmZDViNTIwMjZkODJmNjk1MmFiNDU1NDU2NTZjZDg1YWUyNTRlMGRjNWM1MWEzMWE1YjYiLCJhc3NldElkIjoiNzY0ZTY2NzQzMDMwMzEiLCJpZCI6ImRpZDpwcmlzbTpjYWQ5NzcwMTEyMzRkMGJmNzc1OWMwNmM1M2JkMTBjZWUwYTY0OTE4MjAxMjdhMWNmYjRjNjZiMDU1MzcxMTUwIn19.MEUCIDWRdgE1lH2bvcl2M4cUk8DKynIs0CBlJuO5OuMwtGyIAiEAgvlAh2Ms9UeXgdFbcvfjHSpz1OfI8xXX7e-V5n6pY58",
+            "proof" to hashMapOf(
+                "hash" to "94a8c935fde63c729d85bd8a3d3ac2c438f3194d16b9d37762adf934083e787e",
+                "index" to 0,
+                "siblings" to listOf<String>()
+                )
+        )
+        var resp =  VerifyEndpoint.myPrismVerify(sample)
+        *  return ok(resp)
+        * */
+
         var result = VerifyEndpoint.myPrismVerify(credentialData)
         println("Verification Result: " + result )
-        return result
+        return ok(result)
     }
 
+}
+
+@Controller("/")
+class OptionsController {
+    @Options("{/path:.*}")
+    fun handleOptions(@Nullable @PathVariable path: String?) {
+    }
 }
