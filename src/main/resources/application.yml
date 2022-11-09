@@ -13,6 +13,8 @@ micronaut:
             allowedMethods:
               - POST
               - PUT
+              - GET
+              - OPTIONS
             exposedHeaders:
               - Content-Type
               - Authorization
