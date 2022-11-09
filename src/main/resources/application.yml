@@ -5,6 +5,20 @@ micronaut:
       port: ${PORT:8080}
       cors:
         enabled: true
+        configurations:
+          web:
+            allowedOrigins:
+              - https://test.fairway.work/
+              - https://fairway.work/
+            allowedMethods:
+              - POST
+              - PUT
+            exposedHeaders:
+              - Content-Type
+              - Authorization
+              - Accept
+            maxAge: 3600
+
 netty:
   default:
     allocator:
