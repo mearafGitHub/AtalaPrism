@@ -21,7 +21,6 @@ import io.micronaut.http.annotation.Post
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 import java.util.*
-import kotlin.collections.HashMap
 
 
 class myPrismCredential(
@@ -89,14 +88,14 @@ class VerifyEndpoint{
             return credentialAndProfList
         }
 
-        fun fairwayVerify(credContentMap: Map<String, Any>, userName: String, education: HashMap<String, String>): Any {
+        fun fairwayVerify(credContentMap: Map<String, Any>, userName: String, education: HashMap<String, String>): String {
             // println("fairwayVerify() debug")
             println("credential map:  $credContentMap")
             println("Education array: $education")
             println("userName: $userName")
             var gson = Gson()
 
-            var errorMsg = mutableMapOf<String, Any>(
+            var message = mutableMapOf<String, Any>(
                 "flag" to false,
                 "message" to ""
             )
@@ -114,31 +113,31 @@ class VerifyEndpoint{
 
             // School name vs value in 'organizations' ^ return - Wrong Issuer if false
             if ( education.get("school") != organizations.get(credContentMap.get("id")) ){
-                errorMsg["message"] = "Wrong Issuer."
-                var jsonErrorMsg = gson.toJson(errorMsg)
-                return  jsonErrorMsg
+                message["message"] = "Wrong Issuer."
+                var jsonMessage = gson.toJson(message)
+                return  jsonMessage
             }
             // Holder name vs username in 'userName' ^ return - Not owner if false
             else if (userName != subject.get("name")) {
-                errorMsg["message"] = "This User is Not the Owner of the Credential."
-                var jsonErrorMsg = gson.toJson(errorMsg)
-                return  jsonErrorMsg
+                message["message"] = "This User is Not the Owner of the Credential."
+                var jsonMessage = gson.toJson(message)
+                return  jsonMessage
             }
             // Certificate vs field_of_study ^ return - Wrong Field of study
             else if (subject.get("certificate") != "Certificate of "+ education.get("study")){
-                errorMsg["message"] = "Wrong Field Of Study."
-                var jsonErrorMsg = gson.toJson(errorMsg)
-                return  jsonErrorMsg
+                message["message"] = "Wrong Field Of Study."
+                var jsonMessage = gson.toJson(message)
+                return  jsonMessage
             }
             // Else ^ return ture
-            errorMsg["message"] = "Valid Credential."
-            errorMsg["flag"] = true
-            var jsonErrorMsg = gson.toJson(errorMsg)
-            return  jsonErrorMsg
-            return jsonErrorMsg
+            message["message"] = "Valid Credential."
+            message["flag"] = true
+            var jsonMessage = gson.toJson(message)
+            return  jsonMessage
+            return jsonMessage
         }
 
-        fun verifier(encodedSignedCredential: String, userName: String, education: HashMap<String, String>): Any {
+        fun verifier(encodedSignedCredential: String, userName: String, education: HashMap<String, String>): String  {
 
             val encodedSignedCredentialArray = encodedSignedCredential.split(".").toTypedArray()
             val holderSignedCredentialHash_contentBytes = encodedSignedCredentialArray[0]
@@ -148,24 +147,6 @@ class VerifyEndpoint{
             val credContent = String(decoder.decode(holderSignedCredentialHash_contentBytes))
             var map: Map<String, Any> = HashMap()
             var credContentMap = Gson().fromJson(credContent, map.javaClass)
-
-            // var credContentJson: JsonObject = JsonObject(credContentMap as Map<String, JsonElement>)
-            // var contentBytes:ByteArray = credContent.toByteArray()
-            // var content:CredentialContent = CredentialContent(credContentJson)
-            // var signature: ECSignature = ECSignature(data = contentBytes)
-            // var canonicalForm: String = credContentMap.get("id") as String
-            // var credAndProof = prismCredential_maker(contentBytes,content,signature,canonicalForm)
-
-            // var credMerkleProof = credAndProof[1] as MerkleInclusionProof
-            // var signedCred = credAndProof[0] as PrismCredential
-
-            // makes the NodeAuthApiImpl instance
-            // val environment = "ppp-vasil.atalaprism.io"
-            // val nodeAuthApi = NodeAuthApiImpl(GrpcOptions("http", environment, 50053))
-
-            // if (prismVerify(nodeAuthApi, signedCred, credMerkleProof)){
-            // return fairwayVerify(credContentMap, userName, education)
-            // }
 
             return  fairwayVerify(credContentMap, userName, education) // "Testing..."
         }
@@ -224,7 +205,8 @@ class VerifyService {
     )
 
     @Post("/api/verify")
-    fun verify(holderSignedCredentialDID:String, userName:String, education:HashMap<String,String>): MutableHttpResponse<Any>? {
+    fun verify(holderSignedCredentialDID:String, userName:String, education:HashMap<String,String>):
+            MutableHttpResponse<Any>? {
         var result = VerifyEndpoint.verifier(holderSignedCredentialDID, userName, education)
         println("Verification Result: " + result )
         return ok(result)
