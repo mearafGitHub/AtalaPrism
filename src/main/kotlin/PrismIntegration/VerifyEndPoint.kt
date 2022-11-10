@@ -67,7 +67,6 @@ class VerifyEndpoint{
                 "VerificationErrors should be empty: YOU SHOULD NOT RECEIVE THIS MESSAGE IF VERIFICATION WERE SUCCESSFUL."
             }
             println(""" the verification result:  $res""")
-            // todo: if the result can be comparable then use conditional statement to return T/F
             return true
         }
 
@@ -79,7 +78,7 @@ class VerifyEndpoint{
             var holderSignedCredential: PrismCredential = myPrismCredential(canonicalForm, content, contentBytes, signature)
 
             // making the holderCredentialMerkleProof
-            var hash :Hash = Sha256Digest.fromBytes(contentBytes) // todo: has ERROR: The given byte array does not correspond to a SHA256 hash. It must have exactly 32 bytes
+            var hash :Hash = Sha256Digest.fromBytes(contentBytes)
             var siblings:List<Hash> = listOf()
             var index: Index = 0
             var holderCredentialMerkleProof : MerkleInclusionProof = MerkleInclusionProof(hash,index,siblings)
@@ -104,7 +103,8 @@ class VerifyEndpoint{
                 "did:prism:297506b34a0572ac615e04ea440d34c73e2948df491d50ebe1f8ba1d8d13f065" to "Addis Ababa University",
                 "did:prism:4d5257d64a4dab5c69e3b97668d4df0b022966b35242699695735f8d53c5b07a" to "Hawasa University",
                 "did:prism:9fe2b88c280a0159a2c4d7e7e74f0cf96f2af976adf9a03bcbb5db02c71f8dbe"  to "Jimma University",
-                "did:prism:855ade0b7ffded0f9950aff5faa560b47b2e90ef55cd5791c09abf5e2e949196" to "Bahir Dar University"
+                "did:prism:855ade0b7ffded0f9950aff5faa560b47b2e90ef55cd5791c09abf5e2e949196" to "Bahir Dar University",
+                "did:prism:91127e3c92cf916eb037b3d15e0d206d973fb3353b53a2970a2c19fc90caa585" to "Hamburg University"
             )
 
             var subject: LinkedTreeMap<String, Any> = credContentMap.get("credentialSubject") as LinkedTreeMap<String, Any>
@@ -140,14 +140,13 @@ class VerifyEndpoint{
 
             val encodedSignedCredentialArray = encodedSignedCredential.split(".").toTypedArray()
             val holderSignedCredentialHash_contentBytes = encodedSignedCredentialArray[0]
-            val someThing = encodedSignedCredentialArray[1]
 
             val decoder: Base64.Decoder = Base64.getDecoder()
             val credContent = String(decoder.decode(holderSignedCredentialHash_contentBytes))
             var map: Map<String, Any> = HashMap()
             var credContentMap = Gson().fromJson(credContent, map.javaClass)
 
-            return  fairwayVerify(credContentMap, userName, education) // "Testing..."
+            return  fairwayVerify(credContentMap, userName, education)
         }
 
         private fun VerificationResult.toMessageArray(): List<String> {
@@ -164,21 +163,17 @@ class VerifyEndpoint{
             // Use encodeDefaults to generate empty siblings field on proof
             val format = Json { encodeDefaults = true }
             val gson = Gson();
-            val proofData = gson.toJson(credential.get("proof"));
-
+            val proofData = gson.toJson(credential.get("proof"))
             val proof = MerkleInclusionProof.decode(proofData)
-            // return listOf()
             return runBlocking {nodeAuthApi.verify(signed, proof).toMessageArray()}
-
         }
 
         fun fromJsonToString(data:HashMap<String, Any>):String{
             var return_string = ""
             for ((key, value) in data) {
-                return_string += key+":"+value+","
+                return_string += key + ":" + value + ","
             }
-
-            return return_string
+            return return_string.removeSuffix(",")
         }
 
     }
@@ -204,7 +199,6 @@ class VerifyService {
         )
     }
 
-
     @Post("/api/verify")
     fun verify(holderSignedCredentialDID:String, userName:String, education:HashMap<String,String>):
             MutableHttpResponse<Any>? {
@@ -213,24 +207,10 @@ class VerifyService {
         return ok(result)
     }
 
-
     @Post("/api/prism_verify")
     fun verify(credentialData:HashMap<String,Serializable>): MutableHttpResponse<List<String>> {
         println("Received Data")
         println(credentialData)
-
-        /*
-        * var sample = hashMapOf(
-            "encodedSignedCredential" to "eyJpZCI6ImRpZDpwcmlzbTpjYWQ5NzcwMTEyMzRkMGJmNzc1OWMwNmM1M2JkMTBjZWUwYTY0OTE4MjAxMjdhMWNmYjRjNjZiMDU1MzcxMTUwIiwia2V5SWQiOiJpc3N1aW5nMCIsImNyZWRlbnRpYWxTdWJqZWN0Ijp7InBvbGljeUlkIjoiNjZiZmVmZDViNTIwMjZkODJmNjk1MmFiNDU1NDU2NTZjZDg1YWUyNTRlMGRjNWM1MWEzMWE1YjYiLCJhc3NldElkIjoiNzY0ZTY2NzQzMDMwMzEiLCJpZCI6ImRpZDpwcmlzbTpjYWQ5NzcwMTEyMzRkMGJmNzc1OWMwNmM1M2JkMTBjZWUwYTY0OTE4MjAxMjdhMWNmYjRjNjZiMDU1MzcxMTUwIn19.MEUCIDWRdgE1lH2bvcl2M4cUk8DKynIs0CBlJuO5OuMwtGyIAiEAgvlAh2Ms9UeXgdFbcvfjHSpz1OfI8xXX7e-V5n6pY58",
-            "proof" to hashMapOf(
-                "hash" to "94a8c935fde63c729d85bd8a3d3ac2c438f3194d16b9d37762adf934083e787e",
-                "index" to 0,
-                "siblings" to listOf<String>()
-                )
-        )
-        var resp =  VerifyEndpoint.myPrismVerify(sample)
-        *  return ok(resp)
-        * */
 
         var result = VerifyEndpoint.myPrismVerify(credentialData)
         println("Verification Result: " + result )
