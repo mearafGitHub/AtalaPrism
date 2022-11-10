@@ -21,6 +21,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 import java.io.Serializable
 import java.util.*
+import kotlin.Error
 
 
 class myPrismCredential(
@@ -93,12 +94,10 @@ class VerifyEndpoint{
             println("Education array: $education")
             println("userName: $userName")
             var gson = Gson()
-
             var message = mutableMapOf<String, Any>(
                 "flag" to false,
                 "message" to ""
             )
-
             val organizations:HashMap<String, String> = hashMapOf(
                 "did:prism:297506b34a0572ac615e04ea440d34c73e2948df491d50ebe1f8ba1d8d13f065" to "Addis Ababa University",
                 "did:prism:4d5257d64a4dab5c69e3b97668d4df0b022966b35242699695735f8d53c5b07a" to "Hawasa University",
@@ -133,11 +132,26 @@ class VerifyEndpoint{
             message["flag"] = true
             var jsonMessage = gson.toJson(message)
             return  jsonMessage
-            return jsonMessage
         }
 
         fun verifier(encodedSignedCredential: String, userName: String, education: HashMap<String, String>): String  {
-
+            var message = mutableMapOf<String, Any>(
+                "flag" to false,
+                "message" to ""
+            )
+            var gson = Gson()
+            if (!encodedSignedCredential.contains(".", ignoreCase = true)){
+                message["message"] = "Invalid Credential DID."
+                message["flag"] = false
+                var jsonMessage = gson.toJson(message)
+                return  jsonMessage
+            }
+            if (encodedSignedCredential.length != 623){
+                message["message"] = "Invalid Credential DID."
+                message["flag"] = false
+                var jsonMessage = gson.toJson(message)
+                return  jsonMessage
+            }
             val encodedSignedCredentialArray = encodedSignedCredential.split(".").toTypedArray()
             val holderSignedCredentialHash_contentBytes = encodedSignedCredentialArray[0]
 
@@ -211,7 +225,6 @@ class VerifyService {
     fun verify(credentialData:HashMap<String,Serializable>): MutableHttpResponse<List<String>> {
         println("Received Data")
         println(credentialData)
-
         var result = VerifyEndpoint.myPrismVerify(credentialData)
         println("Verification Result: " + result )
         return ok(result)
