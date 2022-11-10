@@ -1,39 +1,38 @@
 micronaut:
   application:
     name: prismIntegration
-    server:
-      port: ${PORT:8080}
-      cors:
-        enabled: true
-        configurations:
-          web:
-            allowedOrigins:
-              - https://test.fairway.work/
-              - https://fairway.work/
-            allowedMethods:
-              - POST
-              - PUT
-              - GET
-              - OPTIONS
-            exposedHeaders:
-              - Content-Type
-              - Authorization
-              - '*'
-            maxAge: 3600
-      security:
-        enabled: true
-        endpoints:
-          login:
-            enabled: true
-          logout:
-            enabled: true
-          oauth:
-            enabled: true
-        token:
-          enabled: true
-          jwt:
-            enabled: true
-
+  server:
+    port: ${PORT:8080}
+    cors:
+      enabled: true
+    #   configurations:
+    #     web:
+    #       allowedOrigins:
+    #         - https://test.fairway.work/
+    #         - https://fairway.work/
+    #       allowedMethods:
+    #         - POST
+    #         - PUT
+    #         - GET
+    #         - OPTIONS
+    #       exposedHeaders:
+    #         - Content-Type
+    #         - Authorization
+    #         - '*'
+    #       maxAge: 3600
+    # security:
+    #   enabled: true
+    #   endpoints:
+    #     login:
+    #       enabled: true
+    #     logout:
+    #       enabled: true
+    #     oauth:
+    #       enabled: true
+    #   token:
+    #     enabled: true
+    #     jwt:
+    #       enabled: true
 netty:
   default:
     allocator:
