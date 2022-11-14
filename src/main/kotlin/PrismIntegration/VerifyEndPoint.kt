@@ -40,8 +40,8 @@ class GrpcConfig {
     companion object {
         var protocol: String = System.getenv("PRISM_NODE_PROTOCOL") ?: "http"
         var host: String = System.getenv("PRISM_NODE_HOST") ?: "ppp-vasil.atalaprism.io"
-        var port: String = System.getenv("PRISM_NODE_PORT") ?: "5053"
-        var token: String? = System.getenv("PRISM_NODE_TOKEN") ?: null
+        var port: String = System.getenv("PRISM_NODE_PORT") ?: "50053"
+        var token: String? = System.getenv("PRISM_SDK_PASSWORD") ?: null
         fun options(): GrpcOptions {
             println("Connecting to $protocol://$host:$port")
             return GrpcOptions(protocol, host, port.toInt(), token)
