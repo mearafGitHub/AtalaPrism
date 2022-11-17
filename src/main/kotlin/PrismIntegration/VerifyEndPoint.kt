@@ -254,7 +254,7 @@ class VerifyService {
         )
     }
 
-    @Post("/api/verify_fairway")
+    @Post("/api/verify")
     fun verify(holderSignedCredentialDID:String, userName:String, education:HashMap<String,String>):
             MutableHttpResponse<Any>? {
         var result = VerifyEndpoint.verifier(holderSignedCredentialDID, userName, education)
@@ -262,8 +262,9 @@ class VerifyService {
         return ok(result)
     }
 
-    @Post("/api/verify")
-    fun verify(holderSignedCredentialDID:HashMap<String,Any>, userName:String, education:HashMap<String,String>): MutableHttpResponse<String>? {
+    @Post("/api/prism_verify")
+    fun verify(holderSignedCredentialDID:HashMap<String,Any>, userName:String, education:HashMap<String,String>):
+            MutableHttpResponse<String>? {
         var result = VerifyEndpoint.prism_verifier(holderSignedCredentialDID, userName, education)
         println("Verification Result: " + result )
         return ok(result)
