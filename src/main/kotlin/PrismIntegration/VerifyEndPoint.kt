@@ -187,7 +187,7 @@ class VerifyEndpoint{
                 var jsonMessage = gson.toJson(message)
                 return  jsonMessage
             }
-            if (encodedSignedCredential.length != 623){
+            if (encodedSignedCredential.length < 600){
                 message["message"] = "Invalid Credential DID."
                 message["flag"] = false
                 var jsonMessage = gson.toJson(message)
