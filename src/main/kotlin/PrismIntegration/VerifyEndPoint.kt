@@ -5,34 +5,16 @@ import com.google.gson.Gson
 import com.google.gson.internal.LinkedTreeMap
 import io.iohk.atala.prism.api.VerificationResult
 import io.iohk.atala.prism.api.node.NodeAuthApiImpl
-import io.iohk.atala.prism.credentials.PrismCredential
-import io.iohk.atala.prism.credentials.content.CredentialContent
 import io.iohk.atala.prism.credentials.json.JsonBasedCredential
 import io.iohk.atala.prism.crypto.*
-import io.iohk.atala.prism.crypto.keys.ECPrivateKey
-import io.iohk.atala.prism.crypto.signature.ECSignature
 import io.iohk.atala.prism.identity.*
 import io.iohk.atala.prism.protos.GrpcOptions
-import io.micronaut.core.annotation.Nullable
 import io.micronaut.http.HttpResponse.ok
 import io.micronaut.http.MutableHttpResponse
 import io.micronaut.http.annotation.*
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 import java.util.*
-
-
-class myPrismCredential(
-    override val canonicalForm: String,
-    override val content: CredentialContent,
-    override val contentBytes: ByteArray,
-    override val signature: ECSignature?
-) : PrismCredential(){
-    override fun sign(privateKey: ECPrivateKey): PrismCredential {
-        TODO("Not yet implemented")
-    }
-
-}
 
 class GrpcConfig {
     companion object {
@@ -49,26 +31,6 @@ class GrpcConfig {
 class VerifyEndpoint{
 
     companion object {
-        fun prismVerify(nodeAuthApi: NodeAuthApiImpl,
-                        holderSignedCredential: PrismCredential,
-                        holderCredentialMerkleProof: MerkleInclusionProof
-        ):Boolean {
-            println("""Received Holder full signed credential: ${holderSignedCredential} """ )
-            println("Verifier is Verifying received credential using single convenience method")
-
-            val credentialVerificationServiceResult = runBlocking {
-                nodeAuthApi.verify(
-                    signedCredential = holderSignedCredential,
-                    merkleInclusionProof = holderCredentialMerkleProof
-                )
-            }
-            val res = require(credentialVerificationServiceResult.verificationErrors.isEmpty()) {
-                "VerificationErrors should be empty: YOU SHOULD NOT RECEIVE THIS MESSAGE IF VERIFICATION WERE SUCCESSFUL."
-            }
-            println(""" the verification result:  $res""")
-            return true
-        }
-
         fun fairwayVerify(
             credContentMap: Map<String, Any>,
             userName: String,
@@ -88,21 +50,21 @@ class VerifyEndpoint{
                 "did:prism:98d810a11389049a70240555c826bf2b47af85da213c054872bd0d88993dd20d" to "Atse Minilik High School"
             )
 
-            var subject: LinkedTreeMap<String, Any> = credContentMap.get("credentialSubject") as LinkedTreeMap<String, Any>
+            val subject: LinkedTreeMap<String, Any> = credContentMap["credentialSubject"] as LinkedTreeMap<String, Any>
             println("Subject:  $subject")
 
             // School name vs value in 'organizations' ^ return - Wrong Issuer if false
-            if ( education.get("school") != organizations.get(credContentMap.get("id")) ){
+            if ( education["school"] != organizations[credContentMap["id"]] ){
                 message["message"] = "Wrong Issuer."
                 return  message
             }
             // Holder name vs username in 'userName' ^ return - Not owner if false
-            else if (userName != subject.get("name")) {
+            else if (userName != subject["name"]) {
                 message["message"] = "This User is Not the Owner of the Credential."
                 return  message
             }
             // Certificate vs field_of_study ^ return - Wrong Field of study
-            else if (subject.get("certificate") != "Certificate of "+ education.get("study")){
+            else if (subject["certificate"] != "Certificate of "+ education["study"]){
                 message["message"] = "Wrong Field Of Study."
                 return  message
             }
@@ -112,45 +74,43 @@ class VerifyEndpoint{
             return  message
         }
 
-        fun prism_verifier(credential: HashMap<String, Any>, userName: String, education: HashMap<String, String>): String  {
+        fun prismVerifier(credential: HashMap<String, Any>, userName: String, education: HashMap<String, String>): String  {
             println("Received Data at prism_verifier: ")
             println(credential.get("encodedSignedCredential"))
-            var encodedSignedCredential = credential.get("encodedSignedCredential") as String
+            val encodedSignedCredential = credential["encodedSignedCredential"] as String
             var message = mutableMapOf<String, Any>(
                 "flag" to false,
                 "message" to "",
                 "prism_message" to listOf<String>()
             )
-            var gson = Gson()
+            val gson = Gson()
             if (!encodedSignedCredential.contains(".", ignoreCase = true)){
                 message["message"] = "Invalid Credential DID."
                 message["flag"] = false
-                var jsonMessage = gson.toJson(message)
-                return  jsonMessage
+                return  gson.toJson(message)
             }
             if (encodedSignedCredential.length != 623){
                 message["message"] = "Invalid Credential DID."
                 message["flag"] = false
-                var jsonMessage = gson.toJson(message)
-                return  jsonMessage
+                return  gson.toJson(message)
             }
             val encodedSignedCredentialArray = encodedSignedCredential.split(".").toTypedArray()
-            val holderSignedCredentialHash_contentBytes = encodedSignedCredentialArray[0]
+            val holderSignedCredentialHashContentBytes = encodedSignedCredentialArray[0]
 
             val decoder: Base64.Decoder = Base64.getDecoder()
-            val credContent = String(decoder.decode(holderSignedCredentialHash_contentBytes))
-            var map: Map<String, Any> = HashMap()
-            var credContentMap = Gson().fromJson(credContent, map.javaClass)
+            val credContent = String(decoder.decode(holderSignedCredentialHashContentBytes))
+            val map: Map<String, Any> = HashMap()
+            val credContentMap = gson.fromJson(credContent, map.javaClass)
 
-            var res = fairwayVerify(credContentMap, userName, education, message)
-            var flag = res.get("flag") as Boolean
+            val res = fairwayVerify(credContentMap, userName, education, message)
+            val flag = res["flag"] as Boolean
             if (flag){
-                var verfication_res = myPrismVerify(credential)
-                message["prism_message"] = verfication_res
-                var prism_msg_one = verfication_res[0]
-                var prism_msg_two = verfication_res[1]
+                val verficationRes = myPrismVerify(credential)
+                message["prism_message"] = verficationRes
+                val prismMsgOne = verficationRes[0]
+                val prismMsgTwo = verficationRes[1]
 
-                if(prism_msg_one.contains("not found", ignoreCase = true) or prism_msg_two.contains("Invalid", ignoreCase = true)){
+                if(prismMsgOne.contains("not found", ignoreCase = true) or prismMsgTwo.contains("Invalid", ignoreCase = true)){
                     message["flag"] = false
                     message["message"] = "Invalid Credential"
                 }
@@ -163,28 +123,26 @@ class VerifyEndpoint{
                 "flag" to false,
                 "message" to ""
             )
-            var gson = Gson()
+            val gson = Gson()
             if (!encodedSignedCredential.contains(".", ignoreCase = true)){
                 message["message"] = "Invalid Credential DID."
                 message["flag"] = false
-                var jsonMessage = gson.toJson(message)
-                return  jsonMessage
+                return  gson.toJson(message)
             }
             if (encodedSignedCredential.length < 600){
                 message["message"] = "Invalid Credential DID."
                 message["flag"] = false
-                var jsonMessage = gson.toJson(message)
-                return  jsonMessage
+                return  gson.toJson(message)
             }
             val encodedSignedCredentialArray = encodedSignedCredential.split(".").toTypedArray()
-            val holderSignedCredentialHash_contentBytes = encodedSignedCredentialArray[0]
+            val holderSignedCredentialHashContentBytes = encodedSignedCredentialArray[0]
 
             val decoder: Base64.Decoder = Base64.getDecoder()
-            val credContent = String(decoder.decode(holderSignedCredentialHash_contentBytes))
-            var map: Map<String, Any> = HashMap()
-            var credContentMap = Gson().fromJson(credContent, map.javaClass)
+            val credContent = String(decoder.decode(holderSignedCredentialHashContentBytes))
+            val map: Map<String, Any> = HashMap()
+            val credContentMap = Gson().fromJson(credContent, map.javaClass)
 
-            var res = fairwayVerify(credContentMap, userName, education, message)
+            val res = fairwayVerify(credContentMap, userName, education, message)
             return gson.toJson(res)
         }
 
@@ -198,30 +156,17 @@ class VerifyEndpoint{
 
         fun myPrismVerify(credential: HashMap<String, Any>):List<String>{
             val nodeAuthApi = NodeAuthApiImpl(GrpcConfig.options())
-            val signed = JsonBasedCredential.fromString(credential.get("encodedSignedCredential") as String)
+            val signed = JsonBasedCredential.fromString(credential["encodedSignedCredential"] as String)
             // Use encodeDefaults to generate empty siblings field on proof
-            val format = Json { encodeDefaults = true }
-            val gson = Gson();
-            val proofData = gson.toJson(credential.get("proof"))
+            val gson = Gson()
+            val proofData = gson.toJson(credential["proof"])
             val proof = MerkleInclusionProof.decode(proofData)
             return runBlocking {nodeAuthApi.verify(signed, proof).toMessageArray()}
-        }
-
-        fun fromJsonToString(data:HashMap<String, Any>):String{
-            var return_string = ""
-            for ((key, value) in data) {
-                return_string += key + ":" + value + ","
-            }
-            return return_string.removeSuffix(",")
         }
 
     }
 
 }
-
-
-private typealias Hash = Sha256Digest
-private typealias Index = Int
 
 @Controller("/")
 class VerifyService {
@@ -241,24 +186,17 @@ class VerifyService {
     @Post("/api/fairway_verify")
     fun verify(holderSignedCredentialDID:String, userName:String, education:HashMap<String,String>):
             MutableHttpResponse<Any>? {
-        var result = VerifyEndpoint.verifier(holderSignedCredentialDID, userName, education)
+        val result = VerifyEndpoint.verifier(holderSignedCredentialDID, userName, education)
         println("Verification Result: " + result )
         return ok(result)
     }
 
     @Post("/api/verify")
-    fun verify(holderSignedCredentialDID:HashMap<String,Any>, userName:String, education:HashMap<String,String>):
+    fun prismVerify(holderSignedCredentialDID:HashMap<String,Any>, userName:String, education:HashMap<String,String>):
             MutableHttpResponse<String>? {
-        var result = VerifyEndpoint.prism_verifier(holderSignedCredentialDID, userName, education)
+        val result = VerifyEndpoint.prismVerifier(holderSignedCredentialDID, userName, education)
         println("Verification Result: " + result )
         return ok(result)
     }
 
-}
-
-@Controller("/")
-class OptionsController {
-    @Options("{/path:.*}")
-    fun handleOptions(@Nullable @PathVariable path: String?) {
-    }
 }
