@@ -62,28 +62,11 @@ class VerifyEndpoint{
                     merkleInclusionProof = holderCredentialMerkleProof
                 )
             }
-            var res = require(credentialVerificationServiceResult.verificationErrors.isEmpty()) {
+            val res = require(credentialVerificationServiceResult.verificationErrors.isEmpty()) {
                 "VerificationErrors should be empty: YOU SHOULD NOT RECEIVE THIS MESSAGE IF VERIFICATION WERE SUCCESSFUL."
             }
             println(""" the verification result:  $res""")
             return true
-        }
-
-        fun prismCredential_maker(contentBytes:ByteArray,
-                                  content:CredentialContent,
-                                  signature: ECSignature,
-                                  canonicalForm: String):List<Any>
-        {
-            var holderSignedCredential: PrismCredential = myPrismCredential(canonicalForm, content, contentBytes, signature)
-
-            // making the holderCredentialMerkleProof
-            var hash :Hash = Sha256Digest.fromBytes(contentBytes)
-            var siblings:List<Hash> = listOf()
-            var index: Index = 0
-            var holderCredentialMerkleProof : MerkleInclusionProof = MerkleInclusionProof(hash,index,siblings)
-
-            var credentialAndProfList:List<Any> = listOfNotNull(holderSignedCredential, holderCredentialMerkleProof)
-            return credentialAndProfList
         }
 
         fun fairwayVerify(
@@ -255,7 +238,7 @@ class VerifyService {
         )
     }
 
-    @Post("/api/verify")
+    @Post("/api/fairway_verify")
     fun verify(holderSignedCredentialDID:String, userName:String, education:HashMap<String,String>):
             MutableHttpResponse<Any>? {
         var result = VerifyEndpoint.verifier(holderSignedCredentialDID, userName, education)
@@ -263,7 +246,7 @@ class VerifyService {
         return ok(result)
     }
 
-    @Post("/api/prism_verify")
+    @Post("/api/verify")
     fun verify(holderSignedCredentialDID:HashMap<String,Any>, userName:String, education:HashMap<String,String>):
             MutableHttpResponse<String>? {
         var result = VerifyEndpoint.prism_verifier(holderSignedCredentialDID, userName, education)
