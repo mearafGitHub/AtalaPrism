@@ -89,7 +89,7 @@ class VerifyEndpoint{
                 message["flag"] = false
                 return  gson.toJson(message)
             }
-            if (encodedSignedCredential.length != 623){
+            if (encodedSignedCredential.length < 600){
                 message["message"] = "Invalid Credential DID."
                 message["flag"] = false
                 return  gson.toJson(message)
@@ -107,12 +107,15 @@ class VerifyEndpoint{
             if (flag){
                 val verficationRes = myPrismVerify(credential)
                 message["prism_message"] = verficationRes
-                val prismMsgOne = verficationRes[0]
-                val prismMsgTwo = verficationRes[1]
-
+                var prismMsgOne = ""
+                var prismMsgTwo = ""
+                if (!verficationRes.isEmpty()){
+                    prismMsgOne = verficationRes[0]
+                    prismMsgTwo = verficationRes[1]
+                }
                 if(prismMsgOne.contains("not found", ignoreCase = true) or prismMsgTwo.contains("Invalid", ignoreCase = true)){
                     message["flag"] = false
-                    message["message"] = "Invalid Credential"
+                    message["message"] = "Invalid Credential."
                 }
                 return gson.toJson(message)
             }
@@ -125,11 +128,13 @@ class VerifyEndpoint{
             )
             val gson = Gson()
             if (!encodedSignedCredential.contains(".", ignoreCase = true)){
+                println("No '.' found")
                 message["message"] = "Invalid Credential DID."
                 message["flag"] = false
                 return  gson.toJson(message)
             }
             if (encodedSignedCredential.length < 600){
+                println("length < 600")
                 message["message"] = "Invalid Credential DID."
                 message["flag"] = false
                 return  gson.toJson(message)
