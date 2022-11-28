@@ -53,22 +53,21 @@ class VerifyEndpoint{
             val subject: LinkedTreeMap<String, Any> = credContentMap["credentialSubject"] as LinkedTreeMap<String, Any>
             println("Subject:  $subject")
 
-            // School name vs value in 'organizations' ^ return - Wrong Issuer if false
             if ( education["school"] != organizations[credContentMap["id"]] ){
                 message["message"] = "Wrong Issuer."
                 return  message
             }
-            // Holder name vs username in 'userName' ^ return - Not owner if false
+
             else if (userName != subject["name"]) {
                 message["message"] = "This User is Not the Owner of the Credential."
                 return  message
             }
-            // Certificate vs field_of_study ^ return - Wrong Field of study
+
             else if (subject["certificate"] != "Certificate of "+ education["study"]){
                 message["message"] = "Wrong Field Of Study."
                 return  message
             }
-            // Else ^ return ture
+
             message["message"] = "Valid Credential."
             message["flag"] = true
             return  message
@@ -101,7 +100,6 @@ class VerifyEndpoint{
             val credContent = String(decoder.decode(holderSignedCredentialHashContentBytes))
             val map: Map<String, Any> = HashMap()
             val credContentMap = gson.fromJson(credContent, map.javaClass)
-
             val res = fairwayVerify(credContentMap, userName, education, message)
             val flag = res["flag"] as Boolean
             if (flag){
