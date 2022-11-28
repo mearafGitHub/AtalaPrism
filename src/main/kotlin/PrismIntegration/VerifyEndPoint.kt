@@ -37,7 +37,6 @@ class VerifyEndpoint{
             education: HashMap<String, String>,
             message: MutableMap<String, Any>
         ): MutableMap<String, Any> {
-            // println("fairwayVerify() debug")
             println("credential map:  $credContentMap")
             println("Education array: $education")
             println("userName: $userName")
@@ -46,8 +45,9 @@ class VerifyEndpoint{
                 "did:prism:4d5257d64a4dab5c69e3b97668d4df0b022966b35242699695735f8d53c5b07a" to "Hawasa University",
                 "did:prism:9fe2b88c280a0159a2c4d7e7e74f0cf96f2af976adf9a03bcbb5db02c71f8dbe"  to "Jimma University",
                 "did:prism:855ade0b7ffded0f9950aff5faa560b47b2e90ef55cd5791c09abf5e2e949196" to "Bahir Dar University",
-                "did:prism:91127e3c92cf916eb037b3d15e0d206d973fb3353b53a2970a2c19fc90caa585" to "Hamburg University",
-                "did:prism:98d810a11389049a70240555c826bf2b47af85da213c054872bd0d88993dd20d" to "Atse Minilik High School"
+                "did:prism:981e2cf63be61bc555766d71ccbcb79acbad5956de1c520f38ee3708913a5544" to "Hamburg University",
+                "did:prism:98d810a11389049a70240555c826bf2b47af85da213c054872bd0d88993dd20d" to "Atse Minilik High School",
+                "did:prism:cdf9b982adf7d7a993c51e8975489494807663a39c80eb15f75b774544fe0e73" to "ALX Africa"
             )
 
             val subject: LinkedTreeMap<String, Any> = credContentMap["credentialSubject"] as LinkedTreeMap<String, Any>
