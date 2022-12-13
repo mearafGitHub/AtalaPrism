@@ -1,18 +1,25 @@
-## Micronaut 3.7.3 Documentation
+## Fairway x Atala Prism Integration
 
-- [User Guide](https://docs.micronaut.io/3.7.3/guide/index.html)
-- [API Reference](https://docs.micronaut.io/3.7.3/api/index.html)
-- [Configuration Reference](https://docs.micronaut.io/3.7.3/guide/configurationreference.html)
-- [Micronaut Guides](https://guides.micronaut.io/index.html)
+- [Fairway Business Website](https://fairway.global/)
+- [Fairway Recruitment SAAS](https://fairway.work/)
+
 ---
 
-- [Shadow Gradle Plugin](https://plugins.gradle.org/plugin/com.github.johnrengelman.shadow)
-## Feature http-client documentation
+- [Emlpyment Credential Public Framework - Ethiopia](https://docs.google.com/document/d/1K1iPQWOODzkNNhyXoMKpgI1kttqjllbR_XtlA_mn8do/edit#)
 
-- [Micronaut HTTP Client documentation](https://docs.micronaut.io/latest/guide/index.html#httpClient)
+---
+
+- [Emlpyment Credential Usecase User Flow - Job Seeker](https://www.figma.com/proto/X2cC0DnGr6KM1s0d0qVJfW/Employee-Credential?node-id=115%3A1696&scaling=scale-down&page-id=0%3A1&starting-point-node-id=18%3A165)
+
+- [Emlpyment Credential Usecase User Flow - Business](https://www.figma.com/proto/X2cC0DnGr6KM1s0d0qVJfW/Employee-Credential?node-id=98%3A164&scaling=scale-down&page-id=0%3A1&starting-point-node-id=18%3A165)
 
 
-# HOW TO RUN
+## Feature Demo
+
+- [Usage Demo Short Videos](https://www.youtube.com/watch?v=4pRClavTHpE&list=PLfzroa-7VhPaEhkvR0q9snLZm4eWGARm7)
+
+
+## How To Run The API
 
 Place the PRISM_SDK_PASSWORD in a .env file on the root of the repository. Then run
 
